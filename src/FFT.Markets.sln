@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30717.126
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".sln", ".sln", "{62BFF640-C406-4127-A2F5-01B99B043F70}"
+	ProjectSection(SolutionItems) = preProject
+		..\.editorconfig = ..\.editorconfig
+		..\.gitattributes = ..\.gitattributes
+		..\.gitignore = ..\.gitignore
+		..\Directory.Build.props = ..\Directory.Build.props
+		..\LICENSE = ..\LICENSE
+		..\.github\workflows\publish.yml = ..\.github\workflows\publish.yml
+		..\README.md = ..\README.md
+		..\stylecop.json = ..\stylecop.json
+		..\version.json = ..\version.json
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFT.Market", "FFT.Market\FFT.Market.csproj", "{9614A352-8656-41BE-B867-200578F4497A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFT.CryptoSignals", "FFT.CryptoSignals\FFT.CryptoSignals.csproj", "{9F66DC40-8867-470E-9CF0-E6D25D99AF1D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9614A352-8656-41BE-B867-200578F4497A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9614A352-8656-41BE-B867-200578F4497A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9614A352-8656-41BE-B867-200578F4497A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9614A352-8656-41BE-B867-200578F4497A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F66DC40-8867-470E-9CF0-E6D25D99AF1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F66DC40-8867-470E-9CF0-E6D25D99AF1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F66DC40-8867-470E-9CF0-E6D25D99AF1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F66DC40-8867-470E-9CF0-E6D25D99AF1D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9F4FFCB3-6DFE-4659-8848-93AA96E42BFE}
+	EndGlobalSection
+EndGlobal
