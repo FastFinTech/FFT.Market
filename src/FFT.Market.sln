@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFT.Market", "FFT.Market\FF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFT.CryptoSignals", "FFT.CryptoSignals\FFT.CryptoSignals.csproj", "{9F66DC40-8867-470E-9CF0-E6D25D99AF1D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFT.Market.Tests", "FFT.Market.Tests\FFT.Market.Tests.csproj", "{68987BAD-607F-4C63-B8B8-736B3F79CCE2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{9F66DC40-8867-470E-9CF0-E6D25D99AF1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F66DC40-8867-470E-9CF0-E6D25D99AF1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F66DC40-8867-470E-9CF0-E6D25D99AF1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68987BAD-607F-4C63-B8B8-736B3F79CCE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68987BAD-607F-4C63-B8B8-736B3F79CCE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68987BAD-607F-4C63-B8B8-736B3F79CCE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68987BAD-607F-4C63-B8B8-736B3F79CCE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

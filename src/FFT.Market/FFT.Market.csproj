@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5</TargetFramework>
     <IsPackable>true</IsPackable>
+    <NoWarn>CS8618;SA1600;SA1101;SA1516;SA1602;SA1623;SA1309;SA1503;SA1615;SA1611;SA1310;SA1501;SA1000;SA1618</NoWarn>
 
     <PackageId>FFT.Market</PackageId>
     <Summary>Trading software utilities.</Summary>
@@ -16,12 +17,33 @@
 
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
+    <Compile Remove="Instruments\Old\**" />
+    <EmbeddedResource Remove="Instruments\Old\**" />
+    <None Remove="Instruments\Old\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ConfigureAwait.Fody" Version="3.3.1" />
     <PackageReference Include="FFT.Disposables" Version="0.0.6" />
     <PackageReference Include="FFT.FileManagement" Version="0.0.3" />
     <PackageReference Include="FFT.Oanda" Version="2.0.15" />
     <PackageReference Include="FFT.SlottedTimers" Version="0.0.2" />
     <PackageReference Include="FFT.TimeStamps" Version="0.0.18" />
+    <PackageReference Include="FFT.TimeZoneList" Version="0.0.16" />
+    <PackageReference Include="Fody" Version="6.4.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MessagePack" Version="2.2.85" />
+    <PackageReference Include="MessagePack.Annotations" Version="2.2.85" />
+    <PackageReference Include="MessagePackAnalyzer" Version="2.2.85" />
+    <PackageReference Include="Nerdbank.Streams" Version="2.6.81" />
+    <PackageReference Include="Nito.AsyncEx" Version="5.1.0" />
   </ItemGroup>
 
 </Project>

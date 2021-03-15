@@ -11,6 +11,7 @@
     <PackageReference Include="FFT.Oanda" Version="2.0.15" />
     <PackageReference Include="FFT.SlottedTimers" Version="0.0.2" />
     <PackageReference Include="FFT.TimeStamps" Version="0.0.18" />
+    <PackageReference Include="FFT.TimeZoneList" Version="0.0.16" />
   </ItemGroup>
 
   <ItemGroup>
