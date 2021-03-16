@@ -4,49 +4,50 @@
 namespace FFT.Market.ProcessingContexts
 {
   using System;
-  using System.Collections.Concurrent;
   using System.Collections.Generic;
+  using System.Collections.Immutable;
   using System.Linq;
   using System.Threading;
   using System.Threading.Tasks;
+  using FFT.Disposables;
   using FFT.Market.BarBuilders;
   using FFT.Market.Bars;
   using FFT.Market.DependencyTracking;
   using FFT.Market.Engines;
+  using FFT.Market.Providers;
+  using FFT.Market.Providers.Ticks;
   using FFT.Market.TickStreams;
   using FFT.TimeStamps;
+  using static FFT.Market.Services.ServiceProvider;
 
-  public class ProcessingContext : IHaveDependencies, IHaveReadyTask, IHaveErrorTask
+  public class ProcessingContext : DisposeBase, IHaveDependencies, IHaveReadyTask, IHaveErrorTask
   {
-    private readonly CancellationTokenSource _disposed = new();
     private readonly TaskCompletionSource _readyTCS = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource _errorTCS = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    private readonly CancellationToken _disposedToken;
-
     private readonly object _sync = new();
-    private List<BarBuilder> _barBuilders = new();
-    private List<EngineBase> _engines = new();
+    private readonly List<BarBuilder> _barBuilders = new();
+    private readonly List<EngineBase> _engines = new();
+    private readonly List<IProvider> _providers = new();
+    private readonly List<ILiveTickProvider> _tickProviders = new();
 
-    public ProcessingContext(TimeStamp processFromTime, string? name = null)
+    private ITickStreamReader _tickReader;
+
+    public ProcessingContext(TimeStamp firstSessionStartTime, string? name = null)
     {
-      _disposedToken = _disposed.Token;
-      ProcessFromTime = processFromTime;
+      FirstSessionStartTime = firstSessionStartTime;
       State = ProcessingContextState.Initializing;
       Name = name ?? string.Empty;
     }
 
-    public TimeStamp ProcessFromTime { get; }
+    public TimeStamp FirstSessionStartTime { get; }
 
     public ProcessingContextState State { get; private set; }
-    public Exception Exception { get; private set; }
-    public bool IsDisposed { get; private set; }
+
     public string Name { get; private set; }
 
-    /// <inheritdoc/>
     public Task ReadyTask => _readyTCS.Task;
 
-    /// <inheritdoc/>
     public Task ErrorTask => _errorTCS.Task;
 
     public IBars GetBars(BarsInfo barsInfo)
@@ -88,31 +89,56 @@ namespace FFT.Market.ProcessingContexts
       }
     }
 
-
-
-    IProvider[] _providers;
-    ILiveTickProvider[] _tickProviders;
-    ITickStreamReader _tickReader;
-
-    /// <inheritdoc/>
     public IEnumerable<object> GetDependencies()
     {
-      foreach (var bars in BarsProvider.BarBuilders.Select(bb => bb.Bars))
+      foreach (var bars in _barBuilders.Select(bb => bb.Bars))
         yield return bars;
-      foreach (var engine in EngineProvider.Engines)
+      foreach (var engine in _engines)
         yield return engine;
+      foreach (var provider in _providers)
+        yield return provider;
     }
 
-    public void Start() => Task.Run(Work);
+    public void Start() => Task.Run(WorkAsync);
 
-    async Task Work()
+    public ProviderStatus GetStatus()
     {
-      var barBuilders = _barBuilders.Values.ToArray();
+      return new ProviderStatus
+      {
+        ProviderName = State == ProcessingContextState.Initializing
+          ? "Initializing"
+          : Name,
+
+        StatusMessage = State switch
+        {
+          ProcessingContextState.Initializing => "Initializing",
+          ProcessingContextState.Loading => "Loading",
+          ProcessingContextState.ProcessingHistorical => $"Processing historical data ({_tickReader.BytesRemaining} bytes remaining)",
+          ProcessingContextState.ProcessingLive => "Processing live data",
+          ProcessingContextState.Error => "Error: " + DisposalReason!.GetUnwoundMessage(),
+          _ => throw State.UnknownValueException(),
+        },
+
+        InternalProviders = State == ProcessingContextState.Loading
+          ? _tickProviders.Select(x => x.GetStatus()).Concat(_providers.Select(x => x.GetStatus())).ToImmutableList()
+          : ImmutableList<ProviderStatus>.Empty,
+      };
+    }
+
+    protected override void CustomDispose()
+    {
+      State = ProcessingContextState.Error;
+      _errorTCS.TrySetException(DisposalReason!);
+      _readyTCS.TrySetException(DisposalReason!);
+    }
+
+    private async Task WorkAsync()
+    {
       try
       {
-        foreach (var bb in barBuilders)
+        foreach (var bb in _barBuilders)
         {
-          if (bb.BarsInfo.TradingHours.GetActualSessionAt(ProcessFromTime.AddTicks(1)).SessionDate != bb.BarsInfo.FirstSessionDate)
+          if (bb.BarsInfo.TradingHours.GetActualSessionAt(FirstSessionStartTime.AddTicks(1)).SessionDate != bb.BarsInfo.FirstSessionDate)
           {
             throw new Exception("Bar Builder's 'FirstSessionDate' does not match processing context ProcessFromTime");
           }
@@ -123,36 +149,42 @@ namespace FFT.Market.ProcessingContexts
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-          var instrumentNames = string.Join(", ", tickStreams.Select(x => x.Instrument.NinjaTraderSymbol()).Distinct());
-          var processFromDate = ProcessFromTime.GetDate(); // rough, since it's just a utc date irrespective of timezone of actual processing start.
+          var instrumentNames = string.Join(", ", tickStreams.Select(x => x.Instrument.Name).Distinct());
+          var processFromDate = FirstSessionStartTime.GetDate(); // rough, since it's just a utc date irrespective of timezone of actual processing start.
           var daysAgo = TradingPlatformTime.Now.GetDate().GetDaysSince(processFromDate);
           Name = $"Processing Context {instrumentNames} from {processFromDate}, {daysAgo} days ago";
         }
 
-        _providers = this.GetDependenciesRecursive().Where(x => x is IProvider).Cast<IProvider>().ToArray();
+        _providers.AddRange(this.GetDependenciesRecursive().Where(x => x is IProvider).Cast<IProvider>());
 
-        /// This limit is required to prevent an exception when the live tick provider places a restriction on the "first session date"
-        /// property in its info object.
+        // This limit is required to prevent an exception when the live tick provider places a restriction on the "first session date"
+        // property in its info object.
         var firstSessionDateLimit = TradingPlatformTime.Now.GetDate(TradingPlatformTime.TimeZone).AddDays(-1);
-        _tickProviders = tickStreams.Select(x => Services.LiveTickProviderFactory.Get(new LiveTickProviderInfo
-        {
-          FirstSessionDate = x.TradingSessions.GetActualSessionsFrom(ProcessFromTime.AddTicks(1)).First().SessionDate.OrValueIfLesser(firstSessionDateLimit),
-          Instrument = x.Instrument,
-          TradingSessions = x.TradingSessions,
-        })).ToArray();
+        _tickProviders.AddRange(
+          tickStreams.Select(
+            x => LiveTickProviderFactory.Get(
+              new LiveTickProviderInfo
+              {
+                FirstSessionDate = x.TradingSessions.GetActualSessionAt(FirstSessionStartTime.AddTicks(1)).SessionDate.OrValueIfLesser(firstSessionDateLimit),
+                Instrument = x.Instrument,
+                TradingSessions = x.TradingSessions,
+              })));
 
         State = ProcessingContextState.Loading;
 
-        await _providers
-            .Concat(_tickProviders)
-            .WaitForReadyAsync(TimeSpan.FromMinutes(30)).ConfigureAwait(false);
+        using var waitSource = new CancellationTokenSource(TimeSpan.FromMinutes(30));
+        using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(DisposedToken, waitSource.Token);
+        var allProviders = _providers.ToList();
+        allProviders.AddRange(_tickProviders);
+        await allProviders.WaitForReadyAsync(linkedSource.Token);
 
-        /// Combine each of the tick streams into a single reader.
-        _tickReader = new CombinedTickStreamReader(_tickProviders.Select(p => p.CreateReader()));
+        // Combine each of the tick streams into a single reader.
+        _tickReader = new CombinedTickStreamReader(_tickProviders.Select(p => p.CreateReader()).ToArray());
 
-        /// Since the streams all have different start times due to different session templates,
-        /// we need to initialize the reader by fast-forwarding it to the processing context's start time.
-        _tickReader.ReadUntil(ProcessFromTime);
+        // Since the streams all have different start times due to different
+        // session templates, we need to initialize the reader by
+        // fast-forwarding it to the processing context's start time.
+        _tickReader.ReadUntil(FirstSessionStartTime).Count(); // don't forget to execute the enumerable
 
         State = ProcessingContextState.ProcessingHistorical;
 
@@ -161,81 +193,38 @@ namespace FFT.Market.ProcessingContexts
         {
           if (count++ == 1000000)
           {
-            _disposedToken.ThrowIfCancellationRequested();
+            DisposedToken.ThrowIfCancellationRequested();
+            allProviders.ThrowIfAnyHasError();
             count = 0;
           }
-          BarsProvider.ProcessTick(tick);
-          EngineProvider.ProcessTick(tick);
+
+          foreach (var builder in _barBuilders)
+            builder.OnTick(tick);
+          foreach (var engine in _engines)
+            engine.OnTick(tick);
         }
 
         State = ProcessingContextState.ProcessingLive;
-        FireAndForget(() => _readyTCS.TrySetResult());
+        _readyTCS.TrySetResult();
 
         while (true)
         {
-          _providers.ThrowIfAnyHasError();
-          _tickProviders.ThrowIfAnyHasError();
+          allProviders.ThrowIfAnyHasError();
           foreach (var tick in _tickReader.ReadRemaining())
           {
-            BarsProvider.ProcessTick(tick);
-            EngineProvider.ProcessTick(tick);
+            foreach (var builder in _barBuilders)
+              builder.OnTick(tick);
+            foreach (var engine in _engines)
+              engine.OnTick(tick);
           }
-          await Task.Delay(50, _disposedToken).ConfigureAwait(false);
+
+          await Task.Delay(50, DisposedToken);
         }
-      }
-      catch (OperationCanceledException)
-      {
       }
       catch (Exception x)
       {
-        OnError(x);
+        Dispose(x);
       }
-    }
-
-    void OnError(Exception x)
-    {
-      if (Interlocked.CompareExchange(ref _errorSet, 1, 0) == 1) return;
-      Exception = x;
-      State = ProcessingContextState.Error;
-      _errorTCS.TrySetException(Exception);
-      _readyTCS.TrySetException(Exception);
-      _readyTCS = new TaskCompletionSource();
-      _readyTCS.TrySetException(Exception);
-      Dispose();
-    }
-
-    public void Dispose()
-    {
-      if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 1) return;
-      _disposed.Cancel();
-      _disposed.Dispose();
-      OnError(new Exception("Disposed"));
-    }
-
-    public ProviderStatus GetStatus()
-    {
-      var status = new ProviderStatus();
-
-      status.ProviderName = State == ProcessingContextState.Initializing
-          ? "Initializing"
-          : Name;
-
-      status.StatusMessage = State switch
-      {
-        ProcessingContextState.Initializing => "Initializing",
-        ProcessingContextState.Loading => "Loading",
-        ProcessingContextState.ProcessingHistorical => $"Processing historical data ({_tickReader.BytesRemaining} bytes remaining)",
-        ProcessingContextState.ProcessingLive => "Processing live data",
-        ProcessingContextState.Error => "Error: " + Exception.GetUnwoundMessage("==>"),
-        _ => throw new Exception($"Unknown {nameof(ProcessingContextState)} '{State}'.")
-      };
-
-      if (State == ProcessingContextState.Loading)
-      {
-        status.InternalProviders = _tickProviders.Select(x => x.GetStatus()).Concat(_providers.Select(x => x.GetStatus())).ToArray();
-      }
-
-      return status;
     }
   }
 }

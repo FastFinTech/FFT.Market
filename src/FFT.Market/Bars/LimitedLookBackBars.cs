@@ -8,6 +8,7 @@ namespace FFT.Market.Bars
   using System.Linq;
   using FFT.Market.DataSeries;
   using FFT.Market.Instruments;
+  using FFT.Market.TickStreams;
   using FFT.TimeStamps;
 
   public class LimitedLookBackBars : IBars

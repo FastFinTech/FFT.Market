@@ -7,6 +7,8 @@ namespace FFT.Market.Instruments
 
   public interface IInstrument
   {
+    string Name { get; }
+
     Asset BaseAsset { get; }
 
     Asset QuoteAsset { get; }
