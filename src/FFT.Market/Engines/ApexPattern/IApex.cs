@@ -6,7 +6,7 @@ namespace FFT.Market.Engines.ApexPattern
   using System.Collections.Immutable;
   using FFT.Market;
 
-  public interface IAPEX
+  public interface IApex
   {
     Direction Direction { get; }
     ApexStates State { get; }

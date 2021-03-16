@@ -9,20 +9,33 @@ namespace FFT.Market.Engines.ApexPattern
   using FFT.Market.Bars;
   using static System.Math;
 
-  public class ApexLogic : IAPEX
+  internal class ApexLogic : IApex
   {
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable SA1502 // Element should not be on a single line
 
-    private IBars bars;
-    private double eDistanceInPoints;
-    private double xDistanceInPoints;
+    private readonly IBars _bars;
+    private readonly double _eDistanceInPoints;
+    private readonly double _xDistanceInPoints;
 
-    private int barIndex;
-    private int barIndexOfPreviousTick;
-    private ApexPatternFlags Flags;
+    private int _barIndex;
+    private int _barIndexOfPreviousTick;
+    private ApexPatternFlags _flags;
 
-    private ApexLogic() { }
+    public ApexLogic(Direction direction, IBars bars, int barIndex, double eDistanceInPoints, double xDistanceInPoints)
+    {
+      _bars = bars;
+      _barIndexOfPreviousTick = barIndex;
+      _eDistanceInPoints = eDistanceInPoints;
+      _xDistanceInPoints = xDistanceInPoints;
+      Direction = direction;
+      State = ApexStates.FormedA;
+      var currentHigh = bars.GetHigh(barIndex);
+      var currentLow = bars.GetLow(barIndex);
+      A = new IndexAndValue(barIndex, direction.IsUp ? currentHigh : currentLow);
+      MaxLow = double.MinValue;
+      MinHigh = double.MaxValue;
+    }
 
     public Direction Direction { get; private set; }
     public ApexStates State { get; private set; }
@@ -36,36 +49,18 @@ namespace FFT.Market.Engines.ApexPattern
     public double? XTriggerValue { get; private set; }
     public double MinHigh { get; private set; }
     public double MaxLow { get; private set; }
-    public int? LastIndexOfPowerline { get; private set; }
+    public int? LastIndexOfPowerline { get; internal set; }
 
-    private double CurrentHigh => bars.GetHigh(barIndex);
-    private double PreviousHigh => bars.GetHigh(barIndex - 1);
-    private double CurrentLow => bars.GetLow(barIndex);
-    private double PreviousLow => bars.GetLow(barIndex - 1);
-
-    public static ApexLogic Create(Direction direction, IBars bars, int barIndex, double eDistanceInPoints, double xDistanceInPoints)
-    {
-      var currentHigh = bars.GetHigh(barIndex);
-      var currentLow = bars.GetLow(barIndex);
-      return new ApexLogic
-      {
-        bars = bars,
-        barIndexOfPreviousTick = barIndex,
-        eDistanceInPoints = eDistanceInPoints,
-        xDistanceInPoints = xDistanceInPoints,
-        Direction = direction,
-        State = ApexStates.FormedA,
-        A = new IndexAndValue(barIndex, direction.IsUp ? currentHigh : currentLow),
-        MaxLow = double.MinValue, // currentLow,
-        MinHigh = double.MaxValue, // currentHigh,
-      };
-    }
+    private double CurrentHigh => _bars.GetHigh(_barIndex);
+    private double PreviousHigh => _bars.GetHigh(_barIndex - 1);
+    private double CurrentLow => _bars.GetLow(_barIndex);
+    private double PreviousLow => _bars.GetLow(_barIndex - 1);
 
     public ApexPatternFlags Process(int barIndex)
     {
-      this.barIndex = barIndex;
+      this._barIndex = barIndex;
 
-      Flags = 0;
+      _flags = 0;
 
       switch (State)
       {
@@ -151,18 +146,18 @@ namespace FFT.Market.Engines.ApexPattern
         MinHigh = Min(MinHigh, PreviousHigh);
       }
 
-      barIndexOfPreviousTick = barIndex;
-      return Flags;
+      _barIndexOfPreviousTick = barIndex;
+      return _flags;
     }
 
     private bool IsFirstTickOfBar()
     {
-      return barIndex > barIndexOfPreviousTick;
+      return _barIndex > _barIndexOfPreviousTick;
     }
 
     private bool HasJustCompletedBar(Func<int, bool> condition)
     {
-      return barIndex > barIndexOfPreviousTick && condition(barIndexOfPreviousTick);
+      return _barIndex > _barIndexOfPreviousTick && condition(_barIndexOfPreviousTick);
     }
 
     /// <summary>
@@ -176,8 +171,8 @@ namespace FFT.Market.Engines.ApexPattern
         // shift the A if there is an equal or higher high
         if (CurrentHigh >= A.Value)
         {
-          A = new IndexAndValue(barIndex, CurrentHigh);
-          Flags |= ApexPatternFlags.ShiftedA;
+          A = new IndexAndValue(_barIndex, CurrentHigh);
+          _flags |= ApexPatternFlags.ShiftedA;
 
           MaxLow = double.MinValue;
           MinHigh = double.MaxValue;
@@ -191,8 +186,8 @@ namespace FFT.Market.Engines.ApexPattern
         // shift the A if there is an equal or lower low
         if (CurrentLow <= A.Value)
         {
-          A = new IndexAndValue(barIndex, CurrentLow);
-          Flags |= ApexPatternFlags.ShiftedA;
+          A = new IndexAndValue(_barIndex, CurrentLow);
+          _flags |= ApexPatternFlags.ShiftedA;
 
           MaxLow = double.MinValue;
           MinHigh = double.MaxValue;
@@ -218,8 +213,8 @@ namespace FFT.Market.Engines.ApexPattern
       // Also, it can only be done on the completion of any bar AFTER the A bar, not on the completion of the A bar itself.
       if (HasJustCompletedBar(index => index > A.Index))
       {
-        var aHigh = bars.GetHigh(A.Index); // the high of the A bar
-        var aLow = bars.GetLow(A.Index); // the low of the A bar
+        var aHigh = _bars.GetHigh(A.Index); // the high of the A bar
+        var aLow = _bars.GetLow(A.Index); // the low of the A bar
 
         if (Direction.IsUp)
         {
@@ -227,22 +222,22 @@ namespace FFT.Market.Engines.ApexPattern
           if (PreviousLow < aLow && PreviousHigh < aHigh)
           {
             // set the value of the P at the low of the current bar
-            P = new IndexAndValue(barIndex - 1, PreviousLow);
+            P = new IndexAndValue(_barIndex - 1, PreviousLow);
             State = ApexStates.FormedP;
-            Flags |= ApexPatternFlags.FormedP;
+            _flags |= ApexPatternFlags.FormedP;
 
             // indicate that a P was formed
             return true;
           }
 
           // Handle edge case when A bar is also P bar, if the following bar, when completed, has a lower high
-          if (barIndexOfPreviousTick == A.Index + 1)
+          if (_barIndexOfPreviousTick == A.Index + 1)
           {
-            if (bars.GetHigh(A.Index + 1) < aHigh)
+            if (_bars.GetHigh(A.Index + 1) < aHigh)
             {
               P = new IndexAndValue(A.Index, aLow);
               State = ApexStates.FormedP;
-              Flags |= ApexPatternFlags.FormedP;
+              _flags |= ApexPatternFlags.FormedP;
 
               // indicate that a P was formed
               return true;
@@ -255,22 +250,22 @@ namespace FFT.Market.Engines.ApexPattern
           if (PreviousLow > aLow && PreviousHigh > aHigh)
           {
             // set the value of the P at the high of the current bar
-            P = new IndexAndValue(barIndex - 1, PreviousHigh);
+            P = new IndexAndValue(_barIndex - 1, PreviousHigh);
             State = ApexStates.FormedP;
-            Flags |= ApexPatternFlags.FormedP;
+            _flags |= ApexPatternFlags.FormedP;
 
             // indicate that a P was formed
             return true;
           }
 
           // Handle edge case when A bar is also P bar, if the following bar, when completed, has a higher low
-          if (barIndexOfPreviousTick == A.Index + 1)
+          if (_barIndexOfPreviousTick == A.Index + 1)
           {
-            if (bars.GetLow(A.Index + 1) > aLow)
+            if (_bars.GetLow(A.Index + 1) > aLow)
             {
               P = new IndexAndValue(A.Index, aLow);
               State = ApexStates.FormedP;
-              Flags |= ApexPatternFlags.FormedP;
+              _flags |= ApexPatternFlags.FormedP;
 
               // indicate that a P was formed
               return true;
@@ -292,11 +287,11 @@ namespace FFT.Market.Engines.ApexPattern
       if (Direction.IsUp)
       {
         // The P is shifted if there is a lower low
-        if (CurrentLow < P.Value)
+        if (CurrentLow < P!.Value)
         {
           // set the p value at the low of the current bar
-          P = new IndexAndValue(barIndex, CurrentLow);
-          Flags |= ApexPatternFlags.ShiftedP;
+          P = new IndexAndValue(_barIndex, CurrentLow);
+          _flags |= ApexPatternFlags.ShiftedP;
 
           // indicate that the P was shifted
           return true;
@@ -305,11 +300,11 @@ namespace FFT.Market.Engines.ApexPattern
       else
       {
         // The P is shifted if there is a higher high
-        if (CurrentHigh > P.Value)
+        if (CurrentHigh > P!.Value)
         {
           // set the p value at the high of the current bar
-          P = new IndexAndValue(barIndex, CurrentHigh);
-          Flags |= ApexPatternFlags.ShiftedP;
+          P = new IndexAndValue(_barIndex, CurrentHigh);
+          _flags |= ApexPatternFlags.ShiftedP;
 
           // indicate that the P was shifted
           return true;
@@ -332,8 +327,8 @@ namespace FFT.Market.Engines.ApexPattern
         if (CurrentHigh >= ETriggerValue!.Value)
         {
           // set the E value at the E trigger value
-          E = new IndexAndValue(barIndex, ETriggerValue.Value);
-          Flags |= ApexPatternFlags.FormedE;
+          E = new IndexAndValue(_barIndex, ETriggerValue.Value);
+          _flags |= ApexPatternFlags.FormedE;
           State = ApexStates.FormedE;
 
           // indicate that an E was formed
@@ -346,8 +341,8 @@ namespace FFT.Market.Engines.ApexPattern
         if (CurrentLow <= ETriggerValue!.Value)
         {
           // set the E value at the E trigger value
-          E = new IndexAndValue(barIndex, ETriggerValue.Value);
-          Flags |= ApexPatternFlags.FormedE;
+          E = new IndexAndValue(_barIndex, ETriggerValue.Value);
+          _flags |= ApexPatternFlags.FormedE;
           State = ApexStates.FormedE;
 
           // indicate that an E was formed
@@ -371,13 +366,13 @@ namespace FFT.Market.Engines.ApexPattern
         if (CurrentLow < P!.Value)
         {
           // save the current P and E to the list of fails, for display purposes
-          FailedEs = FailedEs.Add(E);
+          FailedEs = FailedEs.Add(E!);
           FailedPs = FailedPs.Add(P);
 
-          P = new IndexAndValue(barIndex, CurrentLow);
+          P = new IndexAndValue(_barIndex, CurrentLow);
           E = null!;
-          Flags |= ApexPatternFlags.FailedE;
-          Flags |= ApexPatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
+          _flags |= ApexPatternFlags.FailedE;
+          _flags |= ApexPatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
           State = ApexStates.FormedP;
 
           // indicate that the E failed
@@ -393,10 +388,10 @@ namespace FFT.Market.Engines.ApexPattern
           FailedEs = FailedEs.Add(E!);
           FailedPs = FailedPs.Add(P);
 
-          P = new IndexAndValue(barIndex, CurrentHigh);
+          P = new IndexAndValue(_barIndex, CurrentHigh);
           E = null!;
-          Flags |= ApexPatternFlags.FailedE;
-          Flags |= ApexPatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
+          _flags |= ApexPatternFlags.FailedE;
+          _flags |= ApexPatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
           State = ApexStates.FormedP;
 
           // indicate that the E failed
@@ -420,8 +415,8 @@ namespace FFT.Market.Engines.ApexPattern
         if (CurrentHigh >= XTriggerValue!.Value)
         {
           // set the value of the X at the X trigger value, not necessarily at the high of the current bar
-          X = new IndexAndValue(barIndex, XTriggerValue.Value);
-          Flags |= ApexPatternFlags.FormedX;
+          X = new IndexAndValue(_barIndex, XTriggerValue.Value);
+          _flags |= ApexPatternFlags.FormedX;
           State = ApexStates.FormedX;
 
           // indicate that an X was formed
@@ -434,8 +429,8 @@ namespace FFT.Market.Engines.ApexPattern
         if (CurrentLow <= XTriggerValue!.Value)
         {
           // set the value of the X at the X trigger value, not necessarily at the low of the current bar
-          X = new IndexAndValue(barIndex, XTriggerValue.Value);
-          Flags |= ApexPatternFlags.FormedX;
+          X = new IndexAndValue(_barIndex, XTriggerValue.Value);
+          _flags |= ApexPatternFlags.FormedX;
           State = ApexStates.FormedX;
 
           // indicate that an X was formed
@@ -449,33 +444,33 @@ namespace FFT.Market.Engines.ApexPattern
 
     private void SetETriggerValue()
     {
-      ETriggerValue = bars.BarsInfo.Instrument.Round2Tick(Direction.IsUp
-          ? bars.GetHigh(P!.Index) + eDistanceInPoints
-          : bars.GetLow(P!.Index) - eDistanceInPoints);
-      Flags |= ApexPatternFlags.SetOrAdjustedETriggervalue;
+      ETriggerValue = _bars.BarsInfo.Instrument.Round2Tick(Direction.IsUp
+          ? _bars.GetHigh(P!.Index) + _eDistanceInPoints
+          : _bars.GetLow(P!.Index) - _eDistanceInPoints);
+      _flags |= ApexPatternFlags.SetOrAdjustedETriggervalue;
     }
 
     private void SetXTriggerValue()
     {
-      XTriggerValue = bars.BarsInfo.Instrument.Round2Tick(Direction.IsUp
-          ? A.Value + xDistanceInPoints
-          : A.Value - xDistanceInPoints);
+      XTriggerValue = _bars.BarsInfo.Instrument.Round2Tick(Direction.IsUp
+          ? A.Value + _xDistanceInPoints
+          : A.Value - _xDistanceInPoints);
     }
 
     private bool TryAdjustETriggerValue()
     {
       // have we just completed a bar that is after the P bar?
-      if (HasJustCompletedBar(index => index > P.Index))
+      if (HasJustCompletedBar(index => index > P!.Index))
       {
         if (Direction.IsUp)
         {
           // does the completed bar have a lower high than the P bar?
           // If so, we can bring the ETriggerValue down a bit.
-          var newValue = bars.BarsInfo.Instrument.Round2Tick(PreviousHigh + eDistanceInPoints);
+          var newValue = _bars.BarsInfo.Instrument.Round2Tick(PreviousHigh + _eDistanceInPoints);
           if (newValue < ETriggerValue!.Value)
           {
             ETriggerValue = newValue;
-            Flags |= ApexPatternFlags.SetOrAdjustedETriggervalue;
+            _flags |= ApexPatternFlags.SetOrAdjustedETriggervalue;
             return true;
           }
         }
@@ -483,11 +478,11 @@ namespace FFT.Market.Engines.ApexPattern
         {
           // does the completed bar have a higher low than the P bar? 
           // If so, we can bring the ETriggerValue up a bit.
-          var newValue = bars.BarsInfo.Instrument.Round2Tick(PreviousLow - eDistanceInPoints);
+          var newValue = _bars.BarsInfo.Instrument.Round2Tick(PreviousLow - _eDistanceInPoints);
           if (newValue > ETriggerValue!.Value)
           {
             ETriggerValue = newValue;
-            Flags |= ApexPatternFlags.SetOrAdjustedETriggervalue;
+            _flags |= ApexPatternFlags.SetOrAdjustedETriggervalue;
             return true;
           }
         }

@@ -5,6 +5,7 @@ namespace FFT.Market.Engines.ApexPattern
 {
   using System;
   using System.Collections.Generic;
+  using System.Collections.Immutable;
   using System.Linq;
   using FFT.Market.Bars;
   using FFT.Market.DependencyTracking;
@@ -14,46 +15,54 @@ namespace FFT.Market.Engines.ApexPattern
 
   public class ApexPatternEngine : EngineBase<ApexPatternEngineSettings>
   {
-    public event Action<ApexPatternEngine> ETriggered, XTriggered, ReversalTriggered;
+    private readonly IBars _bars;
+    private readonly double _eDistanceInPoints;
+    private readonly double _xDistanceInPoints;
+    private readonly double _reversalOffsetInPoints;
+    private readonly Initializer _initializer;
+    private readonly int _tickStreamIdValue;
 
-    public override string Name => "Apex Pattern Engine";
+    private ImmutableList<ApexLogic> _apexList = ImmutableList<ApexLogic>.Empty;
+    private ApexLogic _trendApex;
+    private ApexLogic _reversalApex;
+    private ApexLogic _lastCompletedApex;
 
-    readonly IBars Bars;
-    readonly double EDistanceInPoints;
-    readonly double XDistanceInPoints;
-    readonly double ReversalOffsetInPoints;
-    readonly Initializer initializer;
-    readonly int TickStreamIdValue;
-
-    List<ApexLogic> allApexes = new();
-    ApexLogic currentTrendApexLogic;
-    ApexLogic currentReversalApexLogic;
+    private int _barIndex;
+    private int _previousBarIndex = -1;
+    private double _previousTickPrice = -1;
+    private ApexPatternFlags _flags;
+    private ApexPatternFlags _reversalFlags;
 
     private ApexPatternEngine(ProcessingContext processingContext, ApexPatternEngineSettings settings, BarsInfo barsInfo)
         : base(processingContext, settings)
     {
-      Bars = ProcessingContext.GetBars(barsInfo);
-      EDistanceInPoints = Bars.BarsInfo.Instrument.TicksToPoints(settings.ETicks);
-      XDistanceInPoints = Bars.BarsInfo.Instrument.TicksToPoints(settings.XTicks);
-      ReversalOffsetInPoints = Bars.BarsInfo.Instrument.TicksToPoints(settings.ReversalOffsetTicks);
-      initializer = new Initializer(Bars);
-      TickStreamIdValue = this.GetNonProviderTickStreamDependenciesRecursive().Single().Value;
+      _bars = ProcessingContext.GetBars(barsInfo);
+      _eDistanceInPoints = _bars.BarsInfo.Instrument.TicksToPoints(settings.ETicks);
+      _xDistanceInPoints = _bars.BarsInfo.Instrument.TicksToPoints(settings.XTicks);
+      _reversalOffsetInPoints = _bars.BarsInfo.Instrument.TicksToPoints(settings.ReversalOffsetTicks);
+      _initializer = new Initializer(_bars);
+      _tickStreamIdValue = this.GetNonProviderTickStreamDependenciesRecursive().Single().Value;
     }
 
-    public IEnumerable<IAPEX> AllApexes => allApexes;
-    public IAPEX LastCompletedApex { get; private set; }
-    public IAPEX CurrentTrendApex => currentTrendApexLogic;
-    public IAPEX CurrentReversalApex => currentReversalApexLogic;
+    public event Action<ApexPatternEngine> ETriggered;
+    public event Action<ApexPatternEngine> XTriggered;
+    public event Action<ApexPatternEngine> ReversalTriggered;
+
+    public override string Name => "Apex Pattern Engine";
+    public IEnumerable<IApex> AllApexes => _apexList;
+    public IApex LastCompletedApex => _lastCompletedApex;
+    public IApex CurrentTrendApex => _trendApex;
+    public IApex CurrentReversalApex => _reversalApex;
 
     public double CurrentPowerlineValue
-      => LastCompletedApex is null
-        ? CurrentTrendApex.P!.Value
-        : LastCompletedApex.P!.Value;
+      => _lastCompletedApex is null
+        ? _trendApex.P!.Value
+        : _lastCompletedApex.P!.Value;
 
     public double CurrentPowerlineValuePlusReversalOffset
-      => CurrentTrendApex.Direction.IsUp
-        ? CurrentPowerlineValue - ReversalOffsetInPoints
-        : CurrentPowerlineValue + ReversalOffsetInPoints;
+      => _trendApex.Direction.IsUp
+        ? CurrentPowerlineValue - _reversalOffsetInPoints
+        : CurrentPowerlineValue + _reversalOffsetInPoints;
 
     /// <summary>
     /// Convenience property, created so the UI can display the price at which
@@ -63,13 +72,13 @@ namespace FFT.Market.Engines.ApexPattern
     {
       get
       {
-        if (CurrentReversalApex is null)
+        if (_reversalApex is null)
           return null;
-        if (CurrentReversalApex.State < ApexStates.FormedP)
+        if (_reversalApex.State < ApexStates.FormedP)
           return null;
         if (!IsReversalSignal())
           return null;
-        return CurrentReversalApex.XTriggerValue;
+        return _reversalApex.XTriggerValue;
       }
     }
 
@@ -81,49 +90,40 @@ namespace FFT.Market.Engines.ApexPattern
     {
       get
       {
-        if (CurrentTrendApex is null)
+        if (_trendApex is null)
           return null;
-        if (CurrentTrendApex.State != ApexStates.FormedP)
+        if (_trendApex.State != ApexStates.FormedP)
           return null;
-        return CurrentTrendApex.ETriggerValue;
+        return _trendApex.ETriggerValue;
       }
     }
 
     public static ApexPatternEngine Get(ProcessingContext processingContext, ApexPatternEngineSettings settings, BarsInfo barsInfo)
       => processingContext.GetEngine(
-          search: engine => engine.Settings.Equals(settings) && engine.Bars.BarsInfo.Equals(barsInfo),
+          search: engine => engine.Settings.Equals(settings) && engine._bars.BarsInfo.Equals(barsInfo),
           create: processingContext => new ApexPatternEngine(processingContext, settings, barsInfo));
 
     public override IEnumerable<object> GetDependencies()
     {
-      yield return Bars;
+      yield return _bars;
     }
-
-    // these variables essentially belong inside the Process method,
-    // but there are so many methods to be called from there, and I didn't want to 
-    // explicitly pass them into each method that was called (all the typing would be horrendous)
-    // so I just stuck them here. Obviously, this isn't setup to be used in a multi-threaded way.
-    int barIndex, previousBarIndex = -1;
-    double previousTickPrice = -1;
-    public ApexPatternFlags Flags;
-    ApexPatternFlags reversalFlags;
 
     public override void OnTick(Tick tick)
     {
-      if (tick.Info.Value != TickStreamIdValue) return;
+      if (tick.Info.Value != _tickStreamIdValue) return;
 
-      for (barIndex = Max(0, previousBarIndex); barIndex < Bars.Count; barIndex++)
+      for (_barIndex = Max(0, _previousBarIndex); _barIndex < _bars.Count; _barIndex++)
       {
-        if (barIndex != previousBarIndex)
+        if (_barIndex != _previousBarIndex)
         {
           Process();
-          previousTickPrice = tick.Price;
-          previousBarIndex = barIndex;
+          _previousTickPrice = tick.Price;
+          _previousBarIndex = _barIndex;
         }
-        else if (tick.Price != previousTickPrice)
+        else if (tick.Price != _previousTickPrice)
         {
           Process();
-          previousTickPrice = tick.Price;
+          _previousTickPrice = tick.Price;
         }
       }
     }
@@ -131,17 +131,11 @@ namespace FFT.Market.Engines.ApexPattern
     private void Process()
     {
       // initialization needs to be done if the current trend apex is null
-      if (CurrentTrendApex is null)
+      if (_trendApex is null)
       {
-        Flags = 0;
-        var initializationDirection = initializer.TryInitialize(barIndex);
-
-        // initialization can be performed if a known direction has been returned
-        if (!initializationDirection.IsUnknown)
+        if (_initializer.TryInitialize(_barIndex, out var direction))
         {
-          // initialize by setting up the first trend apex
-          // this method also sets the flags.NewA flag
-          SetupNewTrendApex(initializationDirection);
+          SetupNewTrendApex(direction);
         }
 
         // that's all we need to do ... exit the method
@@ -149,24 +143,24 @@ namespace FFT.Market.Engines.ApexPattern
       }
 
       // lets start by updating the current trend apex
-      Flags = currentTrendApexLogic.Process(barIndex);
+      _flags = _trendApex.Process(_barIndex);
 
       // if the trend apex completed successfully, then we need to setup a new
       // trend apex using the "continue trend" method
-      if (Flags.HasFlag(ApexPatternFlags.FormedX))
+      if (_flags.HasFlag(ApexPatternFlags.FormedX))
       {
         ContinueTrend();
         XTriggered?.Invoke(this);
       }
 
-      if (Flags.HasFlag(ApexPatternFlags.FormedE))
+      if (_flags.HasFlag(ApexPatternFlags.FormedE))
       {
         ETriggered?.Invoke(this);
       }
 
       // now it's time to figure out what to do with the reversal apex half of
       // the time there's no reversal apex actually active in the system.
-      if (CurrentReversalApex is null)
+      if (_reversalApex is null)
       {
         // let's go ahead and setup a new reversal apex if one should be created
         // now
@@ -179,10 +173,10 @@ namespace FFT.Market.Engines.ApexPattern
       {
         // a reversal apex is already active in the system. let's start by
         // having it process this bar
-        reversalFlags = currentReversalApexLogic.Process(barIndex);
+        _reversalFlags = _reversalApex.Process(_barIndex);
 
         // did the reversal apex complete itself?
-        if (reversalFlags.HasFlag(ApexPatternFlags.FormedX))
+        if (_reversalFlags.HasFlag(ApexPatternFlags.FormedX))
         {
           // If the reversal apex satisfies the conditions to signal a reversal,
           // we'll perform the reversal
@@ -195,7 +189,7 @@ namespace FFT.Market.Engines.ApexPattern
           else
           {
             // otherwise we need to setup a new reversal apex
-            SetupNewReversalApex(CurrentReversalApex.Direction);
+            SetupNewReversalApex(_reversalApex.Direction);
           }
         }
         else
@@ -211,10 +205,9 @@ namespace FFT.Market.Engines.ApexPattern
 
       // the last thing to do is a litte bit of sugar for the UI. Just adjust
       // the bar index to which each apex's powerline should be drawn
-      if (CurrentTrendApex is not null)
-        CurrentTrendApex.LastIndexOfPowerline = barIndex;
-      if (LastCompletedApex is not null)
-        LastCompletedApex.LastIndexOfPowerline = barIndex;
+      _trendApex.LastIndexOfPowerline = _barIndex;
+      if (_lastCompletedApex is not null)
+        _lastCompletedApex.LastIndexOfPowerline = _barIndex;
     }
 
     /// <summary>
@@ -226,7 +219,7 @@ namespace FFT.Market.Engines.ApexPattern
       // If the current trend apex's state is still in "FormedA", then there are
       // no bars that can possibly be used as A's for a reversal apex. There
       // needs to be price movement in the opposite direction first.
-      if (CurrentTrendApex.State < ApexStates.FormedP)
+      if (_trendApex.State < ApexStates.FormedP)
         return false;
 
       // Now we wait for price to creep to the correct side of the powerline
@@ -235,9 +228,9 @@ namespace FFT.Market.Engines.ApexPattern
       // CurrentTrendApex (the very first apex of this bar series) forms a new
       // P, because the "CurrentPowerlineValue" property is setup to return the
       // PValue of the CurrentTrendApex when null == LastCompletedApex.
-      return CurrentTrendApex.Direction.IsUp
-          ? Bars.GetLow(barIndex) <= CurrentPowerlineValue
-          : Bars.GetHigh(barIndex) >= CurrentPowerlineValue;
+      return _trendApex.Direction.IsUp
+          ? _bars.GetLow(_barIndex) <= CurrentPowerlineValue
+          : _bars.GetHigh(_barIndex) >= CurrentPowerlineValue;
     }
 
     /// <summary>
@@ -258,12 +251,12 @@ namespace FFT.Market.Engines.ApexPattern
       // CurrentPowerLineValue is set to the P of the trend apex in progress,
       // which resulted in the final expression always incorrectly returning
       // true
-      if (LastCompletedApex is null)
+      if (_lastCompletedApex is null)
         return false;
 
-      return CurrentReversalApex.Direction.IsUp
-          ? CurrentReversalApex.MinHigh < CurrentPowerlineValue
-          : CurrentReversalApex.MaxLow > CurrentPowerlineValue;
+      return _reversalApex.Direction.IsUp
+          ? _reversalApex.MinHigh < CurrentPowerlineValue
+          : _reversalApex.MaxLow > CurrentPowerlineValue;
     }
 
     /// <summary>
@@ -275,8 +268,7 @@ namespace FFT.Market.Engines.ApexPattern
     /// </summary>
     private void ClearReversalApex()
     {
-      CurrentReversalApex = null!;
-      currentReversalApexLogic = null!;
+      _reversalApex = null!;
     }
 
     /// <summary>
@@ -286,10 +278,10 @@ namespace FFT.Market.Engines.ApexPattern
     private void ContinueTrend()
     {
       // the current trend apex becomes the last completed apex
-      LastCompletedApex = CurrentTrendApex;
+      _lastCompletedApex = _trendApex;
 
       // setup a new apex trending in the same direction
-      SetupNewTrendApex(CurrentTrendApex.Direction);
+      SetupNewTrendApex(_trendApex.Direction);
     }
 
     /// <summary>
@@ -300,23 +292,23 @@ namespace FFT.Market.Engines.ApexPattern
     {
       // set the completed reversal apex as the "last completed apex" so it can
       // be used for the powerline value
-      LastCompletedApex = CurrentReversalApex;
+      _lastCompletedApex = _reversalApex;
 
       // and add it to the allApexes list so it becomes a "system apex",
       // displayed on charts. It now becomes the first apex of the new trend.
-      allApexes.Add(CurrentReversalApex);
+      _apexList = _apexList.Add(_reversalApex);
 
       // setup the reversal event flags
-      Flags |= CurrentReversalApex.Direction.IsUp ? ApexPatternFlags.SwitchedDirectionUp : ApexPatternFlags.SwitchedDirectionDown;
+      _flags |= _reversalApex.Direction.IsUp ? ApexPatternFlags.SwitchedDirectionUp : ApexPatternFlags.SwitchedDirectionDown;
 
       // as well as the "FormedX" flag (since the reversal apex has just become
       // an official apex, included in the system and it has just formed an X
-      Flags |= ApexPatternFlags.FormedX;
+      _flags |= ApexPatternFlags.FormedX;
 
       // since the reversal apex has completed, we need to setup a new "in
       // progress" apex in the direction of the new trend. This method call also
       // sets the NewA flag.
-      SetupNewTrendApex(CurrentReversalApex.Direction);
+      SetupNewTrendApex(_reversalApex.Direction);
 
       // and of course, the reversal apex needs to be cleared because it has
       // completed. We'll have to wait for conditions to be right before we
@@ -334,14 +326,13 @@ namespace FFT.Market.Engines.ApexPattern
     private void SetupNewTrendApex(Direction direction)
     {
       // create the new trend apex, saving it in the appropriate variables
-      currentTrendApexLogic = ApexLogic.Create(direction, Bars, barIndex, EDistanceInPoints, XDistanceInPoints);
-      CurrentTrendApex = currentTrendApexLogic.Apex;
+      _trendApex = new ApexLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
 
-      // don't forget to add it to the "allApexes" list so the UI can display it
-      allApexes.Add(CurrentTrendApex);
+      // don't forget to add it to the "_apexList" list so the UI can display it
+      _apexList = _apexList.Add(_trendApex);
 
       // and finally make sure the appropriate flags are set
-      Flags |= ApexPatternFlags.NewA;
+      _flags |= ApexPatternFlags.NewA;
     }
 
     /// <summary>
@@ -354,8 +345,7 @@ namespace FFT.Market.Engines.ApexPattern
     private void SetupNewReversalApex(Direction direction)
     {
       // create the new reversal apex and set the variables for it.
-      currentReversalApexLogic = ApexLogic.Create(direction, Bars, barIndex, EDistanceInPoints, XDistanceInPoints);
-      CurrentReversalApex = currentReversalApexLogic.Apex;
+      _reversalApex = new ApexLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
     }
 
     /// <summary>
@@ -368,15 +358,15 @@ namespace FFT.Market.Engines.ApexPattern
       // First fix this edge case, http://screencast.com/t/glHoY9NMCH which was
       // ALSO caused by not accepting the reversal signal of the reversal apex
       // at the beginning of the chart
-      if (LastCompletedApex is null)
+      if (_lastCompletedApex is null)
         return true;
 
       // a reversal apex can trigger a reversal in the following situations:
       // Direction.IsUp: All bar highs from its A to X are >= powerline value
       // Direction.IsDown: All bar lows from its A to X are <= powerline value
-      return CurrentReversalApex.Direction.IsUp
-          ? CurrentReversalApex.MinHigh >= CurrentPowerlineValuePlusReversalOffset
-          : CurrentReversalApex.MaxLow <= CurrentPowerlineValuePlusReversalOffset;
+      return _reversalApex.Direction.IsUp
+          ? _reversalApex.MinHigh >= CurrentPowerlineValuePlusReversalOffset
+          : _reversalApex.MaxLow <= CurrentPowerlineValuePlusReversalOffset;
     }
 
     private class Initializer
@@ -399,7 +389,7 @@ namespace FFT.Market.Engines.ApexPattern
       /// range from low to high of all bars processed so far is fifty ticks or
       /// more.
       /// </summary>
-      public Direction TryInitialize(int barIndex)
+      public bool TryInitialize(int barIndex, out Direction direction)
       {
         var currentHigh = _bars.GetHigh(barIndex);
         var currentLow = _bars.GetLow(barIndex);
@@ -408,12 +398,12 @@ namespace FFT.Market.Engines.ApexPattern
 
         if ((_maxHigh - _minLow) >= _targetDistance)
         {
-          return _maxHigh == currentHigh
-              ? Direction.Up
-              : Direction.Down;
+          direction = _maxHigh == currentHigh ? Direction.Up : Direction.Down;
+          return true;
         }
 
-        return Direction.Unknown;
+        direction = Direction.Unknown;
+        return false;
       }
     }
   }
