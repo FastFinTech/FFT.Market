@@ -13,6 +13,8 @@ namespace FFT.Market.Instruments
 
     Asset QuoteAsset { get; }
 
+    Exchange Exchange { get; }
+
     SettlementTime SettlementTime { get; }
 
     double TickSize { get; }
