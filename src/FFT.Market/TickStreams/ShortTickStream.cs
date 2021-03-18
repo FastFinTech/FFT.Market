@@ -14,21 +14,31 @@ namespace FFT.Market.TickStreams
 
   public class ShortTickStream : ITickStream, IDisposable
   {
-    private readonly Sequence<byte> _sequence = new Sequence<byte>(ArrayPool<byte>.Shared);
     private readonly double _tickSize;
+    private readonly Sequence<byte> _sequence;
 
     private Tick _previousTick;
 
     public ShortTickStream(TickStreamInfo info)
     {
+      _tickSize = info.Instrument.TickSize;
+      _sequence = new Sequence<byte>(ArrayPool<byte>.Shared);
       Info = info;
-      _tickSize = Info.Instrument.TickSize;
     }
 
     public ShortTickStream(TickStreamInfo info, byte[] bytes)
-      : this(info)
     {
+      _tickSize = info.Instrument.TickSize;
+      _sequence = new Sequence<byte>(ArrayPool<byte>.Shared);
       _sequence.Write(bytes);
+      Info = info;
+    }
+
+    public ShortTickStream(TickStreamInfo info, Sequence<byte> sequence)
+    {
+      _tickSize = info.Instrument.TickSize;
+      _sequence = sequence;
+      Info = info;
     }
 
     public TickStreamInfo Info { get; }
