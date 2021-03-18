@@ -51,14 +51,20 @@ namespace FFT.Market.Providers
       }
     }
 
-    protected override void CustomDispose()
+    protected sealed override void CustomDispose()
     {
+      OnDisposing();
       lock (_sync)
       {
         State = ProviderStates.Error;
         _errorTCS.TrySetException(DisposalReason!);
         _readyTCS.TrySetException(DisposalReason!);
       }
+
+      OnDisposed();
     }
+
+    protected virtual void OnDisposing() { }
+    protected virtual void OnDisposed() { }
   }
 }
