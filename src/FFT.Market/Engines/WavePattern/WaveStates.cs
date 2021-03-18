@@ -1,9 +1,9 @@
 ﻿// Copyright (c) True Goodwill. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace FFT.Market.Engines.ApexPattern
+namespace FFT.Market.Engines.WavePattern
 {
-  public enum ApexStates
+  public enum WaveStates
   {
     /// <summary>
     /// Apex is in this state when it is first created and remains in this

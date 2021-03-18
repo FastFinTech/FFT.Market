@@ -1,7 +1,7 @@
 ﻿// Copyright (c) True Goodwill. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace FFT.Market.Engines.ApexPattern
+namespace FFT.Market.Engines.WavePattern
 {
   using System;
   using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace FFT.Market.Engines.ApexPattern
   using FFT.Market.Ticks;
   using static System.Math;
 
-  public class ApexPatternEngine : EngineBase<ApexPatternEngineSettings>
+  public class WavePatternEngine : EngineBase<WavePatternEngineSettings>
   {
     private readonly IBars _bars;
     private readonly double _eDistanceInPoints;
@@ -22,18 +22,18 @@ namespace FFT.Market.Engines.ApexPattern
     private readonly Initializer _initializer;
     private readonly int _tickStreamIdValue;
 
-    private ImmutableList<ApexLogic> _apexList = ImmutableList<ApexLogic>.Empty;
-    private ApexLogic _trendApex;
-    private ApexLogic _reversalApex;
-    private ApexLogic _lastCompletedApex;
+    private ImmutableList<WaveLogic> _apexList = ImmutableList<WaveLogic>.Empty;
+    private WaveLogic _trendApex;
+    private WaveLogic _reversalApex;
+    private WaveLogic _lastCompletedApex;
 
     private int _barIndex;
     private int _previousBarIndex = -1;
     private double _previousTickPrice = -1;
-    private ApexPatternFlags _flags;
-    private ApexPatternFlags _reversalFlags;
+    private WavePatternFlags _flags;
+    private WavePatternFlags _reversalFlags;
 
-    private ApexPatternEngine(ProcessingContext processingContext, ApexPatternEngineSettings settings, BarsInfo barsInfo)
+    private WavePatternEngine(ProcessingContext processingContext, WavePatternEngineSettings settings, BarsInfo barsInfo)
         : base(processingContext, settings)
     {
       _bars = ProcessingContext.GetBars(barsInfo);
@@ -44,15 +44,15 @@ namespace FFT.Market.Engines.ApexPattern
       _tickStreamIdValue = this.GetNonProviderTickStreamDependenciesRecursive().Single().Value;
     }
 
-    public event Action<ApexPatternEngine> ETriggered;
-    public event Action<ApexPatternEngine> XTriggered;
-    public event Action<ApexPatternEngine> ReversalTriggered;
+    public event Action<WavePatternEngine> ETriggered;
+    public event Action<WavePatternEngine> XTriggered;
+    public event Action<WavePatternEngine> ReversalTriggered;
 
     public override string Name => "Apex Pattern Engine";
-    public IEnumerable<IApex> AllApexes => _apexList;
-    public IApex LastCompletedApex => _lastCompletedApex;
-    public IApex CurrentTrendApex => _trendApex;
-    public IApex CurrentReversalApex => _reversalApex;
+    public IEnumerable<IWave> AllApexes => _apexList;
+    public IWave LastCompletedApex => _lastCompletedApex;
+    public IWave CurrentTrendApex => _trendApex;
+    public IWave CurrentReversalApex => _reversalApex;
 
     public double CurrentPowerlineValue
       => _lastCompletedApex is null
@@ -74,7 +74,7 @@ namespace FFT.Market.Engines.ApexPattern
       {
         if (_reversalApex is null)
           return null;
-        if (_reversalApex.State < ApexStates.FormedP)
+        if (_reversalApex.State < WaveStates.FormedP)
           return null;
         if (!IsReversalSignal())
           return null;
@@ -92,16 +92,16 @@ namespace FFT.Market.Engines.ApexPattern
       {
         if (_trendApex is null)
           return null;
-        if (_trendApex.State != ApexStates.FormedP)
+        if (_trendApex.State != WaveStates.FormedP)
           return null;
         return _trendApex.ETriggerValue;
       }
     }
 
-    public static ApexPatternEngine Get(ProcessingContext processingContext, ApexPatternEngineSettings settings, BarsInfo barsInfo)
+    public static WavePatternEngine Get(ProcessingContext processingContext, WavePatternEngineSettings settings, BarsInfo barsInfo)
       => processingContext.GetEngine(
           search: engine => engine.Settings.Equals(settings) && engine._bars.BarsInfo.Equals(barsInfo),
-          create: processingContext => new ApexPatternEngine(processingContext, settings, barsInfo));
+          create: processingContext => new WavePatternEngine(processingContext, settings, barsInfo));
 
     public override IEnumerable<object> GetDependencies()
     {
@@ -147,13 +147,13 @@ namespace FFT.Market.Engines.ApexPattern
 
       // if the trend apex completed successfully, then we need to setup a new
       // trend apex using the "continue trend" method
-      if (_flags.HasFlag(ApexPatternFlags.FormedX))
+      if (_flags.HasFlag(WavePatternFlags.FormedX))
       {
         ContinueTrend();
         XTriggered?.Invoke(this);
       }
 
-      if (_flags.HasFlag(ApexPatternFlags.FormedE))
+      if (_flags.HasFlag(WavePatternFlags.FormedE))
       {
         ETriggered?.Invoke(this);
       }
@@ -176,7 +176,7 @@ namespace FFT.Market.Engines.ApexPattern
         _reversalFlags = _reversalApex.Process(_barIndex);
 
         // did the reversal apex complete itself?
-        if (_reversalFlags.HasFlag(ApexPatternFlags.FormedX))
+        if (_reversalFlags.HasFlag(WavePatternFlags.FormedX))
         {
           // If the reversal apex satisfies the conditions to signal a reversal,
           // we'll perform the reversal
@@ -219,7 +219,7 @@ namespace FFT.Market.Engines.ApexPattern
       // If the current trend apex's state is still in "FormedA", then there are
       // no bars that can possibly be used as A's for a reversal apex. There
       // needs to be price movement in the opposite direction first.
-      if (_trendApex.State < ApexStates.FormedP)
+      if (_trendApex.State < WaveStates.FormedP)
         return false;
 
       // Now we wait for price to creep to the correct side of the powerline
@@ -299,11 +299,11 @@ namespace FFT.Market.Engines.ApexPattern
       _apexList = _apexList.Add(_reversalApex);
 
       // setup the reversal event flags
-      _flags |= _reversalApex.Direction.IsUp ? ApexPatternFlags.SwitchedDirectionUp : ApexPatternFlags.SwitchedDirectionDown;
+      _flags |= _reversalApex.Direction.IsUp ? WavePatternFlags.SwitchedDirectionUp : WavePatternFlags.SwitchedDirectionDown;
 
       // as well as the "FormedX" flag (since the reversal apex has just become
       // an official apex, included in the system and it has just formed an X
-      _flags |= ApexPatternFlags.FormedX;
+      _flags |= WavePatternFlags.FormedX;
 
       // since the reversal apex has completed, we need to setup a new "in
       // progress" apex in the direction of the new trend. This method call also
@@ -326,13 +326,13 @@ namespace FFT.Market.Engines.ApexPattern
     private void SetupNewTrendApex(Direction direction)
     {
       // create the new trend apex, saving it in the appropriate variables
-      _trendApex = new ApexLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
+      _trendApex = new WaveLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
 
       // don't forget to add it to the "_apexList" list so the UI can display it
       _apexList = _apexList.Add(_trendApex);
 
       // and finally make sure the appropriate flags are set
-      _flags |= ApexPatternFlags.NewA;
+      _flags |= WavePatternFlags.NewA;
     }
 
     /// <summary>
@@ -345,7 +345,7 @@ namespace FFT.Market.Engines.ApexPattern
     private void SetupNewReversalApex(Direction direction)
     {
       // create the new reversal apex and set the variables for it.
-      _reversalApex = new ApexLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
+      _reversalApex = new WaveLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
     }
 
     /// <summary>

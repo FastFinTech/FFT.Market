@@ -1,7 +1,7 @@
 ﻿// Copyright (c) True Goodwill. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace FFT.Market.Engines.ApexPattern
+namespace FFT.Market.Engines.WavePattern
 {
   using System;
   using System.Collections.Generic;
@@ -9,7 +9,7 @@ namespace FFT.Market.Engines.ApexPattern
   using FFT.Market.Bars;
   using static System.Math;
 
-  internal class ApexLogic : IApex
+  internal class WaveLogic : IWave
   {
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable SA1502 // Element should not be on a single line
@@ -20,16 +20,16 @@ namespace FFT.Market.Engines.ApexPattern
 
     private int _barIndex;
     private int _barIndexOfPreviousTick;
-    private ApexPatternFlags _flags;
+    private WavePatternFlags _flags;
 
-    public ApexLogic(Direction direction, IBars bars, int barIndex, double eDistanceInPoints, double xDistanceInPoints)
+    public WaveLogic(Direction direction, IBars bars, int barIndex, double eDistanceInPoints, double xDistanceInPoints)
     {
       _bars = bars;
       _barIndexOfPreviousTick = barIndex;
       _eDistanceInPoints = eDistanceInPoints;
       _xDistanceInPoints = xDistanceInPoints;
       Direction = direction;
-      State = ApexStates.FormedA;
+      State = WaveStates.FormedA;
       var currentHigh = bars.GetHigh(barIndex);
       var currentLow = bars.GetLow(barIndex);
       A = new IndexAndValue(barIndex, direction.IsUp ? currentHigh : currentLow);
@@ -38,7 +38,7 @@ namespace FFT.Market.Engines.ApexPattern
     }
 
     public Direction Direction { get; private set; }
-    public ApexStates State { get; private set; }
+    public WaveStates State { get; private set; }
     public IndexAndValue A { get; private set; }
     public IndexAndValue? P { get; private set; }
     public IndexAndValue? E { get; private set; }
@@ -56,7 +56,7 @@ namespace FFT.Market.Engines.ApexPattern
     private double CurrentLow => _bars.GetLow(_barIndex);
     private double PreviousLow => _bars.GetLow(_barIndex - 1);
 
-    public ApexPatternFlags Process(int barIndex)
+    public WavePatternFlags Process(int barIndex)
     {
       this._barIndex = barIndex;
 
@@ -64,7 +64,7 @@ namespace FFT.Market.Engines.ApexPattern
 
       switch (State)
       {
-        case ApexStates.FormedA:
+        case WaveStates.FormedA:
           {
             if (barIndex == A.Index)
             {
@@ -89,7 +89,7 @@ namespace FFT.Market.Engines.ApexPattern
             break;
           }
 
-        case ApexStates.FormedP:
+        case WaveStates.FormedP:
           {
             if (barIndex == P!.Index)
             {
@@ -118,7 +118,7 @@ namespace FFT.Market.Engines.ApexPattern
             break;
           }
 
-        case ApexStates.FormedE:
+        case WaveStates.FormedE:
           {
             if (TryFailE())
             {
@@ -131,7 +131,7 @@ namespace FFT.Market.Engines.ApexPattern
             break;
           }
 
-        case ApexStates.FormedX:
+        case WaveStates.FormedX:
         default:
           {
             // note to readers: Having this exception here helped a LOT in debugging.
@@ -172,7 +172,7 @@ namespace FFT.Market.Engines.ApexPattern
         if (CurrentHigh >= A.Value)
         {
           A = new IndexAndValue(_barIndex, CurrentHigh);
-          _flags |= ApexPatternFlags.ShiftedA;
+          _flags |= WavePatternFlags.ShiftedA;
 
           MaxLow = double.MinValue;
           MinHigh = double.MaxValue;
@@ -187,7 +187,7 @@ namespace FFT.Market.Engines.ApexPattern
         if (CurrentLow <= A.Value)
         {
           A = new IndexAndValue(_barIndex, CurrentLow);
-          _flags |= ApexPatternFlags.ShiftedA;
+          _flags |= WavePatternFlags.ShiftedA;
 
           MaxLow = double.MinValue;
           MinHigh = double.MaxValue;
@@ -223,8 +223,8 @@ namespace FFT.Market.Engines.ApexPattern
           {
             // set the value of the P at the low of the current bar
             P = new IndexAndValue(_barIndex - 1, PreviousLow);
-            State = ApexStates.FormedP;
-            _flags |= ApexPatternFlags.FormedP;
+            State = WaveStates.FormedP;
+            _flags |= WavePatternFlags.FormedP;
 
             // indicate that a P was formed
             return true;
@@ -236,8 +236,8 @@ namespace FFT.Market.Engines.ApexPattern
             if (_bars.GetHigh(A.Index + 1) < aHigh)
             {
               P = new IndexAndValue(A.Index, aLow);
-              State = ApexStates.FormedP;
-              _flags |= ApexPatternFlags.FormedP;
+              State = WaveStates.FormedP;
+              _flags |= WavePatternFlags.FormedP;
 
               // indicate that a P was formed
               return true;
@@ -251,8 +251,8 @@ namespace FFT.Market.Engines.ApexPattern
           {
             // set the value of the P at the high of the current bar
             P = new IndexAndValue(_barIndex - 1, PreviousHigh);
-            State = ApexStates.FormedP;
-            _flags |= ApexPatternFlags.FormedP;
+            State = WaveStates.FormedP;
+            _flags |= WavePatternFlags.FormedP;
 
             // indicate that a P was formed
             return true;
@@ -264,8 +264,8 @@ namespace FFT.Market.Engines.ApexPattern
             if (_bars.GetLow(A.Index + 1) > aLow)
             {
               P = new IndexAndValue(A.Index, aLow);
-              State = ApexStates.FormedP;
-              _flags |= ApexPatternFlags.FormedP;
+              State = WaveStates.FormedP;
+              _flags |= WavePatternFlags.FormedP;
 
               // indicate that a P was formed
               return true;
@@ -291,7 +291,7 @@ namespace FFT.Market.Engines.ApexPattern
         {
           // set the p value at the low of the current bar
           P = new IndexAndValue(_barIndex, CurrentLow);
-          _flags |= ApexPatternFlags.ShiftedP;
+          _flags |= WavePatternFlags.ShiftedP;
 
           // indicate that the P was shifted
           return true;
@@ -304,7 +304,7 @@ namespace FFT.Market.Engines.ApexPattern
         {
           // set the p value at the high of the current bar
           P = new IndexAndValue(_barIndex, CurrentHigh);
-          _flags |= ApexPatternFlags.ShiftedP;
+          _flags |= WavePatternFlags.ShiftedP;
 
           // indicate that the P was shifted
           return true;
@@ -328,8 +328,8 @@ namespace FFT.Market.Engines.ApexPattern
         {
           // set the E value at the E trigger value
           E = new IndexAndValue(_barIndex, ETriggerValue.Value);
-          _flags |= ApexPatternFlags.FormedE;
-          State = ApexStates.FormedE;
+          _flags |= WavePatternFlags.FormedE;
+          State = WaveStates.FormedE;
 
           // indicate that an E was formed
           return true;
@@ -342,8 +342,8 @@ namespace FFT.Market.Engines.ApexPattern
         {
           // set the E value at the E trigger value
           E = new IndexAndValue(_barIndex, ETriggerValue.Value);
-          _flags |= ApexPatternFlags.FormedE;
-          State = ApexStates.FormedE;
+          _flags |= WavePatternFlags.FormedE;
+          State = WaveStates.FormedE;
 
           // indicate that an E was formed
           return true;
@@ -371,9 +371,9 @@ namespace FFT.Market.Engines.ApexPattern
 
           P = new IndexAndValue(_barIndex, CurrentLow);
           E = null!;
-          _flags |= ApexPatternFlags.FailedE;
-          _flags |= ApexPatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
-          State = ApexStates.FormedP;
+          _flags |= WavePatternFlags.FailedE;
+          _flags |= WavePatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
+          State = WaveStates.FormedP;
 
           // indicate that the E failed
           return true;
@@ -390,9 +390,9 @@ namespace FFT.Market.Engines.ApexPattern
 
           P = new IndexAndValue(_barIndex, CurrentHigh);
           E = null!;
-          _flags |= ApexPatternFlags.FailedE;
-          _flags |= ApexPatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
-          State = ApexStates.FormedP;
+          _flags |= WavePatternFlags.FailedE;
+          _flags |= WavePatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
+          State = WaveStates.FormedP;
 
           // indicate that the E failed
           return true;
@@ -416,8 +416,8 @@ namespace FFT.Market.Engines.ApexPattern
         {
           // set the value of the X at the X trigger value, not necessarily at the high of the current bar
           X = new IndexAndValue(_barIndex, XTriggerValue.Value);
-          _flags |= ApexPatternFlags.FormedX;
-          State = ApexStates.FormedX;
+          _flags |= WavePatternFlags.FormedX;
+          State = WaveStates.FormedX;
 
           // indicate that an X was formed
           return true;
@@ -430,8 +430,8 @@ namespace FFT.Market.Engines.ApexPattern
         {
           // set the value of the X at the X trigger value, not necessarily at the low of the current bar
           X = new IndexAndValue(_barIndex, XTriggerValue.Value);
-          _flags |= ApexPatternFlags.FormedX;
-          State = ApexStates.FormedX;
+          _flags |= WavePatternFlags.FormedX;
+          State = WaveStates.FormedX;
 
           // indicate that an X was formed
           return true;
@@ -447,7 +447,7 @@ namespace FFT.Market.Engines.ApexPattern
       ETriggerValue = _bars.BarsInfo.Instrument.Round2Tick(Direction.IsUp
           ? _bars.GetHigh(P!.Index) + _eDistanceInPoints
           : _bars.GetLow(P!.Index) - _eDistanceInPoints);
-      _flags |= ApexPatternFlags.SetOrAdjustedETriggervalue;
+      _flags |= WavePatternFlags.SetOrAdjustedETriggervalue;
     }
 
     private void SetXTriggerValue()
@@ -470,7 +470,7 @@ namespace FFT.Market.Engines.ApexPattern
           if (newValue < ETriggerValue!.Value)
           {
             ETriggerValue = newValue;
-            _flags |= ApexPatternFlags.SetOrAdjustedETriggervalue;
+            _flags |= WavePatternFlags.SetOrAdjustedETriggervalue;
             return true;
           }
         }
@@ -482,7 +482,7 @@ namespace FFT.Market.Engines.ApexPattern
           if (newValue > ETriggerValue!.Value)
           {
             ETriggerValue = newValue;
-            _flags |= ApexPatternFlags.SetOrAdjustedETriggervalue;
+            _flags |= WavePatternFlags.SetOrAdjustedETriggervalue;
             return true;
           }
         }

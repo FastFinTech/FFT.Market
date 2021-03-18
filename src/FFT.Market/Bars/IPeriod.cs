@@ -57,24 +57,24 @@ namespace FFT.Market.Bars
     public IPeriod Multiply(double value) => new RangePeriod { TicksPerBar = Max(1, (int)(TicksPerBar * value)) };
   }
 
-  public sealed record DiagnosticPeriod : IPeriod
+  public sealed record PriceActionPeriod : IPeriod
   {
-    public static DiagnosticPeriod Default { get; } = new DiagnosticPeriod
+    public static PriceActionPeriod Default { get; } = new PriceActionPeriod
     {
       TrendBarSizeInTicks = 12,
       ReversalBarSizeInTicks = 12,
     };
 
-    public string Name => "Diagnostic";
+    public string Name => "PriceAction";
     public bool IsEvenTimeSpacingBars => false;
     public int TrendBarSizeInTicks { get; init; }
     public int ReversalBarSizeInTicks { get; init; }
 
     public override string ToString()
-      => $"{TrendBarSizeInTicks}/{ReversalBarSizeInTicks}-Diagnostic";
+      => $"{TrendBarSizeInTicks}/{ReversalBarSizeInTicks}-PriceAction";
 
     public IPeriod Multiply(double value)
-      => new DiagnosticPeriod
+      => new PriceActionPeriod
       {
         TrendBarSizeInTicks = (int)(TrendBarSizeInTicks * value),
         ReversalBarSizeInTicks = (int)(ReversalBarSizeInTicks * value),

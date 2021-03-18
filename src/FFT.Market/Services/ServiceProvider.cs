@@ -12,7 +12,7 @@ namespace FFT.Market.Services
     public static ITradingPlatformTime TradingPlatformTime { get; private set; }
     public static void SetTradingPlatformTime(ITradingPlatformTime time) => TradingPlatformTime = time;
 
-    public static ILiveTickProviderFactory LiveTickProviderFactory { get; private set; }
-    public static void SetLiveTickProviderFactory(ILiveTickProviderFactory factory) => LiveTickProviderFactory = factory;
+    public static ITickProviderFactory TickProviderFactory { get; private set; }
+    public static void SetTickProviderFactory(ITickProviderFactory factory) => TickProviderFactory = factory;
   }
 }

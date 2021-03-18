@@ -29,7 +29,7 @@ namespace FFT.Market.ProcessingContexts
     private readonly List<BarBuilder> _barBuilders = new();
     private readonly List<EngineBase> _engines = new();
     private readonly List<IProvider> _providers = new();
-    private readonly List<ILiveTickProvider> _tickProviders = new();
+    private readonly List<ITickProvider> _tickProviders = new();
 
     private ITickStreamReader _tickReader;
 
@@ -157,17 +157,14 @@ namespace FFT.Market.ProcessingContexts
 
         _providers.AddRange(this.GetDependenciesRecursive().Where(x => x is IProvider).Cast<IProvider>());
 
-        // This limit is required to prevent an exception when the live tick provider places a restriction on the "first session date"
-        // property in its info object.
-        var firstSessionDateLimit = TradingPlatformTime.Now.GetDate(TradingPlatformTime.TimeZone).AddDays(-1);
         _tickProviders.AddRange(
           tickStreams.Select(
-            x => LiveTickProviderFactory.Get(
-              new LiveTickProviderInfo
+            x => TickProviderFactory.GetTickProvider(
+              new TickProviderInfo
               {
-                FirstSessionDate = x.TradingSessions.GetActualSessionAt(FirstSessionStartTime.AddTicks(1)).SessionDate.OrValueIfLesser(firstSessionDateLimit),
+                From = x.TradingSessions.GetActualSessionAt(FirstSessionStartTime).SessionStart.ToDayFloor().AddTicks(1),
                 Instrument = x.Instrument,
-                TradingSessions = x.TradingSessions,
+                Until = null,
               })));
 
         State = ProcessingContextState.Loading;
@@ -180,11 +177,6 @@ namespace FFT.Market.ProcessingContexts
 
         // Combine each of the tick streams into a single reader.
         _tickReader = new CombinedTickStreamReader(_tickProviders.Select(p => p.CreateReader()).ToArray());
-
-        // Since the streams all have different start times due to different
-        // session templates, we need to initialize the reader by
-        // fast-forwarding it to the processing context's start time.
-        _tickReader.ReadUntil(FirstSessionStartTime).Count(); // don't forget to execute the enumerable
 
         State = ProcessingContextState.ProcessingHistorical;
 

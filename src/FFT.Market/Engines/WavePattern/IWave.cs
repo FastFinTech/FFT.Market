@@ -1,15 +1,15 @@
 ﻿// Copyright (c) True Goodwill. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace FFT.Market.Engines.ApexPattern
+namespace FFT.Market.Engines.WavePattern
 {
   using System.Collections.Immutable;
   using FFT.Market;
 
-  public interface IApex
+  public interface IWave
   {
     Direction Direction { get; }
-    ApexStates State { get; }
+    WaveStates State { get; }
     IndexAndValue A { get; }
     IndexAndValue? P { get; }
     IndexAndValue? E { get; }

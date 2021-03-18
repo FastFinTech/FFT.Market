@@ -4,13 +4,12 @@
 namespace FFT.Market.Providers.Ticks
 {
   using FFT.Market.Instruments;
-  using FFT.Market.Sessions.TradingHoursSessions;
   using FFT.TimeStamps;
 
-  public sealed record DayTickProviderInfo
+  public sealed record TickProviderInfo
   {
     public IInstrument Instrument { get; init; }
-    public DateStamp SessionDate { get; init; }
-    public TradingSessions TradingSessions { get; init; }
+    public TimeStamp From { get; init; }
+    public TimeStamp? Until { get; init; }
   }
 }

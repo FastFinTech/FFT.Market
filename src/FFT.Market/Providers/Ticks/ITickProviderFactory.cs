@@ -3,13 +3,8 @@
 
 namespace FFT.Market.Providers.Ticks
 {
-  using FFT.Market.Providers;
-  using FFT.Market.TickStreams;
-
-  public interface IDayTickProvider : IProvider
+  public interface ITickProviderFactory
   {
-    DayTickProviderInfo Info { get; }
-
-    ITickStreamReader CreateReader();
+    ITickProvider GetTickProvider(TickProviderInfo info);
   }
 }

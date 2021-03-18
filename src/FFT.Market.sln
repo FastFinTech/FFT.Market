@@ -22,7 +22,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFT.CryptoSignals", "FFT.Cr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFT.Market.Tests", "FFT.Market.Tests\FFT.Market.Tests.csproj", "{68987BAD-607F-4C63-B8B8-736B3F79CCE2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFT.Market.SourceGen", "FFT.Market.SourceGen\FFT.Market.SourceGen.csproj", "{6650434D-D303-4717-887F-0CC107BB07BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFT.Market.SourceGen", "FFT.Market.SourceGen\FFT.Market.SourceGen.csproj", "{6650434D-D303-4717-887F-0CC107BB07BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFT.CryptoArbDetector", "FFT.CryptoArbDetector\FFT.CryptoArbDetector.csproj", "{810B562B-F867-45CE-ACA6-3869809D4C1F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,6 +48,10 @@ Global
 		{6650434D-D303-4717-887F-0CC107BB07BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6650434D-D303-4717-887F-0CC107BB07BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6650434D-D303-4717-887F-0CC107BB07BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{810B562B-F867-45CE-ACA6-3869809D4C1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{810B562B-F867-45CE-ACA6-3869809D4C1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{810B562B-F867-45CE-ACA6-3869809D4C1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{810B562B-F867-45CE-ACA6-3869809D4C1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

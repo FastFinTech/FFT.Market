@@ -40,7 +40,7 @@ namespace FFT.Market.Engines.SimpleArb
       _tickStreamInfo2 = new TickStreamInfo(_instrument2, TradingSessions.Create24x7(TimeZoneInfo.Utc));
     }
 
-    public event Action<SimpleArbEngine> NewArbCreated;
+    public event Action<SimpleArbEngine, IArbEvent> NewArbCreated;
 
     public override string Name { get; }
 
@@ -116,7 +116,7 @@ namespace FFT.Market.Engines.SimpleArb
             Sell = sell,
           };
           ArbEvents = ArbEvents.Add(_currentArb);
-          NewArbCreated?.Invoke(this);
+          NewArbCreated?.Invoke(this, _currentArb);
         }
       }
 

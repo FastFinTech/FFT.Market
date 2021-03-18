@@ -8,9 +8,9 @@ namespace FFT.Market.BarBuilders
   using FFT.Market.Ticks;
   using static System.Math;
 
-  public class DiagnosticBarBuilder : BarBuilder
+  public class PriceActionBarBuilder : BarBuilder
   {
-    private readonly DiagnosticPeriod _period;
+    private readonly PriceActionPeriod _period;
     private readonly double _tickSize;
     private readonly double _trendBarSizeInPoints;
     private readonly double _reversalBarSizeInPoints;
@@ -24,10 +24,10 @@ namespace FFT.Market.BarBuilders
     private double _nextBarMinLow;
     private Direction _trend = Direction.Up;
 
-    public DiagnosticBarBuilder(BarsInfo barsInfo)
+    public PriceActionBarBuilder(BarsInfo barsInfo)
       : base(barsInfo)
     {
-      _period = (barsInfo.Period as DiagnosticPeriod) ?? throw new ArgumentException("period");
+      _period = (barsInfo.Period as PriceActionPeriod) ?? throw new ArgumentException("period");
       _tickSize = barsInfo.Instrument.TickSize;
       _trendBarSizeInPoints = barsInfo.Instrument.TicksToPoints(_period.TrendBarSizeInTicks);
       _reversalBarSizeInPoints = barsInfo.Instrument.TicksToPoints(_period.ReversalBarSizeInTicks);

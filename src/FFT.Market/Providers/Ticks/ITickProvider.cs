@@ -3,8 +3,11 @@
 
 namespace FFT.Market.Providers.Ticks
 {
-  public interface ILiveTickProviderFactory
+  using FFT.Market.TickStreams;
+
+  public interface ITickProvider : IProvider
   {
-    ILiveTickProvider Get(LiveTickProviderInfo info);
+    TickProviderInfo Info { get; }
+    ITickStreamReader CreateReader();
   }
 }

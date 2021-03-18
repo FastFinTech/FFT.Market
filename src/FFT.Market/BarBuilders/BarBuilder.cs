@@ -42,7 +42,7 @@ namespace FFT.Market.BarBuilders
         MinutePeriod => new MinuteBarBuilder(barsInfo),
         RangePeriod => new RangeBarBuilder(barsInfo),
         TickPeriod => new TickBarBuilder(barsInfo),
-        DiagnosticPeriod => new DiagnosticBarBuilder(barsInfo),
+        PriceActionPeriod => new PriceActionBarBuilder(barsInfo),
         _ => throw barsInfo.Period.GetType().UnknownTypeException(),
       };
     }
