@@ -11,7 +11,7 @@ namespace FFT.Market.TickStreams
   /// Reads ticks from an uninterrupted 24x7 tick stream and yields only the
   /// ticks that fall within sessions of the given session iterator.
   /// </summary>
-  public class SessionRespectingTickStreamReader : ITickStreamReader
+  public sealed class SessionRespectingTickStreamReader : ITickStreamReader
   {
     private readonly TradingSessions _tradingSessions;
     private readonly ITickStreamReader _tickStreamReader;

@@ -13,7 +13,7 @@ namespace FFT.Market.Engines.WavePattern
   using FFT.Market.Ticks;
   using static System.Math;
 
-  public class WavePatternEngine : EngineBase<WavePatternEngineSettings>
+  public sealed class WavePatternEngine : EngineBase<WavePatternEngineSettings>
   {
     private readonly IBars _bars;
     private readonly double _eDistanceInPoints;

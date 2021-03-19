@@ -9,7 +9,7 @@ namespace FFT.Market.Engines.WavePattern
   using FFT.Market.Bars;
   using static System.Math;
 
-  internal class WaveLogic : IWave
+  internal sealed class WaveLogic : IWave
   {
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable SA1502 // Element should not be on a single line

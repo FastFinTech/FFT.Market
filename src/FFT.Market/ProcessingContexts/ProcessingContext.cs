@@ -20,7 +20,7 @@ namespace FFT.Market.ProcessingContexts
   using FFT.TimeStamps;
   using static FFT.Market.Services.ServiceProvider;
 
-  public class ProcessingContext : DisposeBase, IHaveDependencies, IHaveReadyTask, IHaveErrorTask
+  public sealed class ProcessingContext : DisposeBase, IHaveDependencies, IHaveReadyTask, IHaveErrorTask
   {
     private readonly TaskCompletionSource _readyTCS = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource _errorTCS = new(TaskCreationOptions.RunContinuationsAsynchronously);

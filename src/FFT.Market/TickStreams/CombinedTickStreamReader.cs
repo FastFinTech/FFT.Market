@@ -15,7 +15,7 @@ namespace FFT.Market.TickStreams
   /// where each tick is ordered by its TimeStamp property.
   /// Read on to see how to create code that even the children will enjoy.
   /// </summary>
-  public class CombinedTickStreamReader : ITickStreamReader
+  public sealed class CombinedTickStreamReader : ITickStreamReader
   {
     // all the input streams that will be combined and ordered by time.
     private readonly ITickStreamReader[] _readers;

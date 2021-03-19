@@ -10,10 +10,24 @@ namespace FFT.Market.TickStreams
   public interface ITickStream : IDisposable
   {
     TickStreamInfo Info { get; }
+
+    /// <summary>
+    /// Number of bytes of data used to store the ticks.
+    /// </summary>
     long DataLength { get; }
-    int Count { get; }
+
     void WriteTick(Tick tick);
+
+    /// <summary>
+    /// Creates a reader from the beginning of the stream.
+    /// </summary>
     ITickStreamReader CreateReader();
+
+    /// <summary>
+    /// Creates a reader that starts just AFTER the given <paramref
+    /// name="timeStamp"/>. Ticks at exactly <paramref name="timeStamp"/> will
+    /// not be included in the reader's output.
+    /// </summary>
     ITickStreamReader CreateReaderFrom(TimeStamp timeStamp);
   }
 }
