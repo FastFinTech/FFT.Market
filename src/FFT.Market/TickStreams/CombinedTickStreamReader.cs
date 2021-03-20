@@ -6,6 +6,7 @@ namespace FFT.Market.TickStreams
   using System;
   using System.Collections.Generic;
   using System.Linq;
+  using FFT.Market.Instruments;
   using FFT.Market.Ticks;
   using FFT.TimeStamps;
 
@@ -54,8 +55,8 @@ namespace FFT.Market.TickStreams
       }
     }
 
-    public TickStreamInfo Info
-      => throw new NotSupportedException("TickStreamInfo is not available for combined tick reader since it combines multiple tick streams.");
+    public IInstrument Instrument
+      => throw new NotSupportedException("Instrument is not available for combined tick reader since it combines multiple tick streams.");
 
     /// <summary>
     /// Reads the next tick from the combined tick stream.

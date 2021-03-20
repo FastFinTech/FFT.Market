@@ -6,6 +6,7 @@ namespace FFT.Market.DependencyTracking
   using System;
   using System.Collections.Generic;
   using System.Linq;
+  using FFT.Market.Instruments;
   using FFT.Market.Providers;
   using FFT.Market.TickStreams;
 
@@ -43,7 +44,7 @@ namespace FFT.Market.DependencyTracking
     /// A typical use of this method is to find out what tickstreams are required when initializing a processing context,
     /// when we want to exclude the tickstreams needed by providers (as the providers take care of their own tick streams).
     /// </summary>
-    public static IEnumerable<TickStreamInfo> GetNonProviderTickStreamDependenciesRecursive(this IHaveDependencies target)
-      => target.GetDependenciesRecursive(d => !(d is IProvider)).OfType<TickStreamInfo>();
+    public static IEnumerable<IInstrument> GetNonProviderInstrumentDependenciesRecursive(this IHaveDependencies target)
+      => target.GetDependenciesRecursive(d => !(d is IProvider)).OfType<IInstrument>();
   }
 }

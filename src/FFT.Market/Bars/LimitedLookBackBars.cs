@@ -49,7 +49,7 @@ namespace FFT.Market.Bars
 
     public IEnumerable<object> GetDependencies()
     {
-      yield return new TickStreamInfo(BarsInfo.Instrument, BarsInfo.TradingHours);
+      yield return BarsInfo.Instrument;
     }
 
     public IBar GetBar(int index) => _bars[index - NumRemoved];

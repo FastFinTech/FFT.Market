@@ -5,6 +5,7 @@ namespace FFT.Market.TickStreams
 {
   using System;
   using System.Linq;
+  using FFT.Market.Instruments;
   using FFT.Market.Ticks;
 
   public sealed class ConcatenatedTickStreamReader : ITickStreamReader
@@ -18,10 +19,10 @@ namespace FFT.Market.TickStreams
     public ConcatenatedTickStreamReader(params ITickStreamReader[] readers)
     {
       if (readers is not { Length: > 0 }) throw new ArgumentException(nameof(readers));
-      Info = readers[0].Info;
+      Instrument = readers[0].Instrument;
       foreach (var reader in readers.Skip(1))
       {
-        if (!reader.Info.Equals(Info))
+        if (!reader.Instrument.Equals(Instrument))
           throw new Exception("Tick stream info does not match.");
       }
 
@@ -30,7 +31,7 @@ namespace FFT.Market.TickStreams
       _currentReader = readers[0];
     }
 
-    public TickStreamInfo Info { get; }
+    public IInstrument Instrument { get; }
 
     public long BytesRemaining
     {

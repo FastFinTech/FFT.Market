@@ -7,12 +7,13 @@ namespace FFT.Market.TickStreams
   using System.Collections.Generic;
   using System.Linq;
   using System.Text;
+  using FFT.Market.Instruments;
   using FFT.Market.Ticks;
   using FFT.TimeStamps;
 
   public interface ITickStreamReader
   {
-    TickStreamInfo Info { get; }
+    IInstrument Instrument { get; }
 
     /// <summary>
     /// Use this property for reporting progress to the user. Don't use it in

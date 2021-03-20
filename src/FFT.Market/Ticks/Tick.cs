@@ -3,7 +3,7 @@
 
 namespace FFT.Market.Ticks
 {
-  using FFT.Market.TickStreams;
+  using FFT.Market.Instruments;
   using FFT.TimeStamps;
 
   /// <summary>
@@ -11,7 +11,7 @@ namespace FFT.Market.Ticks
   /// </summary>
   public record Tick
   {
-    public TickStreamInfo Info { get; init; }
+    public IInstrument Instrument { get; init; }
     public long SequenceNumber { get; init; }
     public double Price { get; init; }
     public double Volume { get; init; }

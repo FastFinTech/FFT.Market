@@ -7,6 +7,7 @@ namespace FFT.Market.TickStreams
   using System.Buffers;
   using System.Linq;
   using FFT.Market;
+  using FFT.Market.Instruments;
   using FFT.Market.Ticks;
   using FFT.TimeStamps;
   using MessagePack;
@@ -19,30 +20,30 @@ namespace FFT.Market.TickStreams
 
     private Tick? _previousTick;
 
-    public ShortTickStream(TickStreamInfo info)
+    public ShortTickStream(IInstrument instrument)
     {
-      _tickSize = info.Instrument.TickSize;
+      _tickSize = instrument.TickSize;
       _sequence = new Sequence<byte>(ArrayPool<byte>.Shared);
-      Info = info;
+      Instrument = instrument;
     }
 
-    public ShortTickStream(TickStreamInfo info, byte[] bytes)
+    public ShortTickStream(IInstrument instrument, byte[] bytes)
     {
-      _tickSize = info.Instrument.TickSize;
+      _tickSize = instrument.TickSize;
       _sequence = new Sequence<byte>(ArrayPool<byte>.Shared);
       _sequence.Write(bytes);
-      Info = info;
+      Instrument = instrument;
       DataLength = _sequence.Length;
       var reader = CreateReader();
       for (var tick = reader.ReadNext(); tick is not null; tick = reader.ReadNext())
         _previousTick = tick;
     }
 
-    public ShortTickStream(TickStreamInfo info, Sequence<byte> sequence)
+    public ShortTickStream(IInstrument instrument, Sequence<byte> sequence)
     {
-      _tickSize = info.Instrument.TickSize;
+      _tickSize = instrument.TickSize;
       _sequence = sequence;
-      Info = info;
+      Instrument = instrument;
       DataLength = _sequence.Length;
       var reader = CreateReader();
       for (var tick = reader.ReadNext(); tick is not null; tick = reader.ReadNext())
@@ -50,7 +51,7 @@ namespace FFT.Market.TickStreams
     }
 
     /// <inheritdoc />
-    public TickStreamInfo Info { get; }
+    public IInstrument Instrument { get; }
 
     /// <inheritdoc />
     public long DataLength { get; private set; }
@@ -130,10 +131,10 @@ namespace FFT.Market.TickStreams
       {
         _parent = parent;
         _tickSize = _parent._tickSize;
-        Info = _parent.Info;
+        Instrument = _parent.Instrument;
       }
 
-      public TickStreamInfo Info { get; }
+      public IInstrument Instrument { get; }
 
       public long BytesRemaining => _parent.DataLength - _position;
 
@@ -177,7 +178,7 @@ namespace FFT.Market.TickStreams
           _position += reader.Consumed;
           return _previousTick = new Tick
           {
-            Info = Info,
+            Instrument = Instrument,
             Price = price,
             Bid = bid,
             Ask = ask,
@@ -196,7 +197,7 @@ namespace FFT.Market.TickStreams
           _position += reader.Consumed;
           return _previousTick = new Tick
           {
-            Info = Info,
+            Instrument = Instrument,
             Price = price,
             Bid = bid,
             Ask = ask,

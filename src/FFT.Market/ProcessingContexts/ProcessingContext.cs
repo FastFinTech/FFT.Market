@@ -33,14 +33,14 @@ namespace FFT.Market.ProcessingContexts
 
     private ITickStreamReader _tickReader;
 
-    public ProcessingContext(TimeStamp firstSessionStartTime, string? name = null)
+    public ProcessingContext(TimeStamp startTime, string? name = null)
     {
-      FirstSessionStartTime = firstSessionStartTime;
+      StartTime = startTime;
       State = ProcessingContextState.Initializing;
       Name = name ?? string.Empty;
     }
 
-    public TimeStamp FirstSessionStartTime { get; }
+    public TimeStamp StartTime { get; }
 
     public ProcessingContextState State { get; private set; }
 
@@ -138,19 +138,19 @@ namespace FFT.Market.ProcessingContexts
       {
         foreach (var bb in _barBuilders)
         {
-          if (bb.BarsInfo.TradingHours.GetActualSessionAt(FirstSessionStartTime.AddTicks(1)).SessionDate != bb.BarsInfo.FirstSessionDate)
+          if (bb.BarsInfo.TradingHours.GetActualSessionAt(StartTime.AddTicks(1)).SessionDate != bb.BarsInfo.FirstSessionDate)
           {
             throw new Exception("Bar Builder's 'FirstSessionDate' does not match processing context ProcessFromTime");
           }
         }
 
-        var tickStreams = this.GetNonProviderTickStreamDependenciesRecursive().ToArray();
-        if (tickStreams.Length == 0) throw new Exception("At least one tick stream is required.");
+        var instruments = this.GetNonProviderInstrumentDependenciesRecursive().ToArray();
+        if (instruments.Length == 0) throw new Exception("At least one tick stream is required.");
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-          var instrumentNames = string.Join(", ", tickStreams.Select(x => x.Instrument.Name).Distinct());
-          var processFromDate = FirstSessionStartTime.GetDate(); // rough, since it's just a utc date irrespective of timezone of actual processing start.
+          var instrumentNames = string.Join(", ", instruments.Select(x => x.Name).Distinct());
+          var processFromDate = StartTime.GetDate(); // rough, since it's just a utc date irrespective of timezone of actual processing start.
           var daysAgo = TradingPlatformTime.Now.GetDate().GetDaysSince(processFromDate);
           Name = $"Processing Context {instrumentNames} from {processFromDate}, {daysAgo} days ago";
         }
@@ -158,12 +158,12 @@ namespace FFT.Market.ProcessingContexts
         _providers.AddRange(this.GetDependenciesRecursive().Where(x => x is IProvider).Cast<IProvider>());
 
         _tickProviders.AddRange(
-          tickStreams.Select(
-            x => TickProviderFactory.GetTickProvider(
+          instruments.Select(
+            instrument => TickProviderFactory.GetTickProvider(
               new TickProviderInfo
               {
-                From = x.TradingSessions.GetActualSessionAt(FirstSessionStartTime).SessionStart.ToDayFloor().AddTicks(1),
-                Instrument = x.Instrument,
+                Instrument = instrument,
+                From = StartTime,
                 Until = null,
               })));
 

@@ -4,6 +4,7 @@
 namespace FFT.Market.TickStreams
 {
   using System.Linq;
+  using FFT.Market.Instruments;
   using FFT.Market.Sessions.TradingHoursSessions;
   using FFT.Market.Ticks;
 
@@ -24,10 +25,10 @@ namespace FFT.Market.TickStreams
       var timeOfFirstTick = tickStreamReader.PeekNext()!.TimeStamp;
       var sessionDateOfFirstTick = _tradingSessions.GetActualSessionAt(timeOfFirstTick).SessionDate;
       _iterator = new TradingSessionIterator(_tradingSessions, sessionDateOfFirstTick);
-      Info = new TickStreamInfo(tickStreamReader.Info.Instrument, tradingSessions);
+      Instrument = tickStreamReader.Instrument;
     }
 
-    public TickStreamInfo Info { get; }
+    public IInstrument Instrument { get; }
 
     public long BytesRemaining => _tickStreamReader.BytesRemaining;
 

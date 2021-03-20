@@ -4,7 +4,6 @@
 namespace FFT.Market.BarBuilders
 {
   using System.Diagnostics;
-  using FFT.Market.TickStreams;
   using FFT.Market.Bars;
   using FFT.Market.Sessions.TradingHoursSessions;
   using FFT.Market.Ticks;
@@ -19,14 +18,10 @@ namespace FFT.Market.BarBuilders
       BarsInfo = barsInfo;
       Bars = new Bars(barsInfo);
       SessionIterator = new TradingSessionIterator(BarsInfo.TradingHours, BarsInfo.FirstSessionDate);
-
-      // Get an identifier for the tick stream that contains ticks for this bar series.
-      TickStreamInfoValue = new TickStreamInfo(BarsInfo.Instrument, BarsInfo.TradingHours).Value;
     }
 
     public BarsInfo BarsInfo { get; }
     public IBars Bars { get; }
-    public int TickStreamInfoValue { get; }
 
     protected TradingSessionIterator SessionIterator { get; }
 
@@ -50,20 +45,13 @@ namespace FFT.Market.BarBuilders
     public void OnTick(Tick tick)
     {
       // Only process the tick if it belongs to the tick stream for this bar series.
-      if (tick.Info.Value != TickStreamInfoValue)
+      if (tick.Instrument != BarsInfo.Instrument)
         return;
 
       SessionIterator.MoveUntil(tick.TimeStamp);
 
-#if DEBUG
-      // Check for idiot situations and break so the coder can see it happen.
       if (!SessionIterator.IsInSession)
-      {
-        // This should never happen, because the tick stream is supposed to be restricted only to in-session ticks.
-        // If you ever see this you should have a look at the tick providers and find the bug.
-        Debugger.Break();
-      }
-#endif
+        return;
 
       BarBuilderOnTick(tick);
     }

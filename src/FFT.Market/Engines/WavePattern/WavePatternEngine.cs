@@ -6,9 +6,7 @@ namespace FFT.Market.Engines.WavePattern
   using System;
   using System.Collections.Generic;
   using System.Collections.Immutable;
-  using System.Linq;
   using FFT.Market.Bars;
-  using FFT.Market.DependencyTracking;
   using FFT.Market.ProcessingContexts;
   using FFT.Market.Ticks;
   using static System.Math;
@@ -20,7 +18,6 @@ namespace FFT.Market.Engines.WavePattern
     private readonly double _xDistanceInPoints;
     private readonly double _reversalOffsetInPoints;
     private readonly Initializer _initializer;
-    private readonly int _tickStreamIdValue;
 
     private ImmutableList<WaveLogic> _apexList = ImmutableList<WaveLogic>.Empty;
     private WaveLogic _trendApex;
@@ -41,7 +38,6 @@ namespace FFT.Market.Engines.WavePattern
       _xDistanceInPoints = _bars.BarsInfo.Instrument.TicksToPoints(settings.XTicks);
       _reversalOffsetInPoints = _bars.BarsInfo.Instrument.TicksToPoints(settings.ReversalOffsetTicks);
       _initializer = new Initializer(_bars);
-      _tickStreamIdValue = this.GetNonProviderTickStreamDependenciesRecursive().Single().Value;
     }
 
     public event Action<WavePatternEngine> ETriggered;
@@ -110,7 +106,8 @@ namespace FFT.Market.Engines.WavePattern
 
     public override void OnTick(Tick tick)
     {
-      if (tick.Info.Value != _tickStreamIdValue) return;
+      if (tick.Instrument != _bars.BarsInfo.Instrument)
+        return;
 
       for (_barIndex = Max(0, _previousBarIndex); _barIndex < _bars.Count; _barIndex++)
       {

@@ -4,12 +4,13 @@
 namespace FFT.Market.TickStreams
 {
   using System;
+  using FFT.Market.Instruments;
   using FFT.Market.Ticks;
   using FFT.TimeStamps;
 
   public interface ITickStream : IDisposable
   {
-    TickStreamInfo Info { get; }
+    IInstrument Instrument { get; }
 
     /// <summary>
     /// Number of bytes of data used to store the ticks.

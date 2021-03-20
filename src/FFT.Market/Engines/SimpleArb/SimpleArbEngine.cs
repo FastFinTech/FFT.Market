@@ -17,8 +17,6 @@ namespace FFT.Market.Engines.SimpleArb
   {
     private readonly IInstrument _instrument1;
     private readonly IInstrument _instrument2;
-    private readonly TickStreamInfo _tickStreamInfo1;
-    private readonly TickStreamInfo _tickStreamInfo2;
 
     private Tick _lastTick1;
     private Tick _lastTick2;
@@ -36,8 +34,6 @@ namespace FFT.Market.Engines.SimpleArb
         throw new ArgumentException("BaseAsset");
 
       (_instrument1, _instrument2) = (instrument1, instrument2);
-      _tickStreamInfo1 = new TickStreamInfo(_instrument1, TradingSessions.Create24x7(TimeZoneInfo.Utc));
-      _tickStreamInfo2 = new TickStreamInfo(_instrument2, TradingSessions.Create24x7(TimeZoneInfo.Utc));
     }
 
     public event Action<SimpleArbEngine, IArbEvent> NewArbCreated;
@@ -61,13 +57,13 @@ namespace FFT.Market.Engines.SimpleArb
 
     public override IEnumerable<object> GetDependencies()
     {
-      yield return _tickStreamInfo1;
-      yield return _tickStreamInfo2;
+      yield return _instrument1;
+      yield return _instrument2;
     }
 
     public override void OnTick(Tick tick)
     {
-      if (tick.Info.Value == _tickStreamInfo1.Value)
+      if (tick.Instrument == _instrument1)
       {
         if (_lastTick2 is not null)
         {
@@ -76,7 +72,7 @@ namespace FFT.Market.Engines.SimpleArb
 
         _lastTick1 = tick;
       }
-      else if (tick.Info.Value == _tickStreamInfo2.Value)
+      else if (tick.Instrument == _instrument2)
       {
         if (_lastTick1 is not null)
         {
