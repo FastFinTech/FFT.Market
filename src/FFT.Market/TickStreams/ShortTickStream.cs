@@ -27,7 +27,7 @@ namespace FFT.Market.TickStreams
       Instrument = instrument;
     }
 
-    public ShortTickStream(IInstrument instrument, byte[] bytes)
+    public ShortTickStream(IInstrument instrument, ReadOnlySpan<byte> bytes)
     {
       _tickSize = instrument.TickSize;
       _sequence = new Sequence<byte>(ArrayPool<byte>.Shared);
