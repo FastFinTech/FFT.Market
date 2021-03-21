@@ -15,16 +15,12 @@ namespace FFT.Market.Providers
   /// and removed from the store. <see cref="TInfo"/> MUST BE a
   /// memberwise-equality object for the cache-keying to work as expected.
   /// </summary>
-  public class ProviderStore<TInfo, TProvider>
+  public abstract class ProviderStore<TInfo, TProvider>
     where TProvider : class, IProvider
     where TInfo : notnull
   {
     private readonly object _sync = new();
     private readonly Dictionary<TInfo, TProvider> _store = new();
-    private readonly Func<TInfo, TProvider> _constructor;
-
-    public ProviderStore(Func<TInfo, TProvider> constructor)
-      => _constructor = constructor;
 
     /// <summary>
     /// Gets the provider with the given info from the store if it exists, or creates a new one.
@@ -36,7 +32,7 @@ namespace FFT.Market.Providers
       {
         if (!_store.TryGetValue(info, out var provider))
         {
-          provider = _constructor(info);
+          provider = Create(info);
           _store[info] = provider;
           provider.ErrorTask.ContinueWith(
             t =>
@@ -71,5 +67,7 @@ namespace FFT.Market.Providers
         return null;
       }
     }
+
+    protected abstract TProvider Create(TInfo info);
   }
 }
