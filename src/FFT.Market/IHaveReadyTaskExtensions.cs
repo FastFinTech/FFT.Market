@@ -39,13 +39,15 @@ namespace FFT.Market
       using var cts = new CancellationTokenTaskSource<object>(ct);
       var tasks = providers.Select(p => p.ReadyTask).Append(cts.Task).ToList();
 
-      // wait until all the tasks have completed,
-      // immediately throwing an exception if any of the tasks fails.
-      while (tasks.Count > 0)
+      // Wait until all the tasks have completed, immediately throwing an
+      // exception if any of the tasks fails. The cancellation task will be the
+      // last task remaining, if it is not cancelled, so we wait for all but the
+      // last task to complete.
+      while (tasks.Count > 1)
       {
         // the required exception throwing immediacy is the reason we dont use await Task.WhenAll
         var completedTask = await Task.WhenAny(tasks);
-        await completedTask; // throws the exception
+        await completedTask; // throws the exception if it exists (including OperationCanceledException from the cancellation token)
         tasks.Remove(completedTask);
       }
     }
