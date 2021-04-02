@@ -52,6 +52,7 @@ namespace FFT.Market.Tests
         Volume = 5,
       });
       var allBytes = tickStream.AsReadOnlySequence();
+      Assert.IsTrue(allBytes.Length > 0);
     }
 
     internal sealed record Instrument : IInstrument
