@@ -77,6 +77,8 @@ namespace FFT.Market.TickStreams
         writer.Write((ulong)(tick.TimeStamp.TicksUtc - _previousTick.TimeStamp.TicksUtc));
       }
 
+      writer.Flush();
+
       _previousTick = tick;
 
       // NB: Increment the DataLength property last, after all bytes are
