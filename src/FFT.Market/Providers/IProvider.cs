@@ -5,8 +5,9 @@ namespace FFT.Market.Providers
 {
   using System;
   using FFT.Market.DependencyTracking;
+  using FFT.Market.UsageTracking;
 
-  public interface IProvider : IHaveDependencies, IHaveReadyTask, IHaveErrorTask, IDisposable
+  public interface IProvider : IHaveUserCountToken, IHaveDependencies, IHaveReadyTask, IHaveErrorTask, IDisposable
   {
     string Name { get; }
     ProviderStates State { get; }

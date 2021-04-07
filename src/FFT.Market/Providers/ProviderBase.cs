@@ -8,6 +8,7 @@ namespace FFT.Market.Providers
   using System.Threading;
   using System.Threading.Tasks;
   using FFT.Disposables;
+  using FFT.Market.UsageTracking;
 
   /// <summary>
   /// This is a convenience, utility class that provides boiler-plate code used
@@ -22,6 +23,12 @@ namespace FFT.Market.Providers
     private readonly object _sync = new();
     private readonly TaskCompletionSource _readyTCS = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource _errorTCS = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly UserTokenMonitor _userTokenMonitor = new();
+
+    public ProviderBase()
+    {
+      _userTokenMonitor.UserCountZero += () => Dispose(new Exception("User count is zero."));
+    }
 
     public string Name { get; protected set; }
 
@@ -34,6 +41,8 @@ namespace FFT.Market.Providers
     public Exception? Exception => DisposalReason;
 
     public abstract void Start();
+
+    public IDisposable GetUserCountToken() => _userTokenMonitor.GetUserCountToken();
 
     public abstract IEnumerable<object> GetDependencies();
 

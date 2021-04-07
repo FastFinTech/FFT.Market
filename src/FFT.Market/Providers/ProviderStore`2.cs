@@ -58,10 +58,10 @@ namespace FFT.Market.Providers
     {
       lock (_sync)
       {
-        foreach (var kv in _store)
+        foreach (var (info, provider) in _store)
         {
-          if (predicate(kv.Value))
-            return kv.Value;
+          if (predicate(provider))
+            return provider;
         }
 
         return null;
