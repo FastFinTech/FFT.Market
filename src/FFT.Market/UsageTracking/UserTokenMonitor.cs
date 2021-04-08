@@ -4,7 +4,6 @@
 namespace FFT.Market.UsageTracking
 {
   using System;
-  using System.Threading;
   using Nito.Disposables;
 
   /// <summary>
@@ -13,13 +12,13 @@ namespace FFT.Market.UsageTracking
   /// </summary>
   public sealed class UserTokenMonitor : IHaveUserCountToken
   {
+    private readonly object _sync = new();
+
     private int _userCount = 0;
 
     /// <summary>
     /// This event is invoked whenever the user count changes. Subscribe to it
-    /// to respond to changing user count. It is NOT threadsafe. If multiple
-    /// user additions and removals happen at about the same time, this event
-    /// might fire in an uneven sequence.
+    /// to respond to changing user count.
     /// </summary>
     public event Action<int> UserCountChanged;
 
@@ -31,15 +30,19 @@ namespace FFT.Market.UsageTracking
     /// <inheritdoc />
     public IDisposable GetUserCountToken()
     {
-      var count = Interlocked.Increment(ref _userCount);
-      UserCountChanged?.Invoke(count);
-      return Disposable.Create(() =>
+      lock (_sync)
       {
-        var count = Interlocked.Decrement(ref _userCount);
-        UserCountChanged?.Invoke(count);
-        if (count == 0)
-          UserCountZero?.Invoke();
-      });
+        UserCountChanged?.Invoke(++_userCount);
+        return Disposable.Create(() =>
+        {
+          lock (_sync)
+          {
+            UserCountChanged?.Invoke(--_userCount);
+            if (_userCount == 0)
+              UserCountZero?.Invoke();
+          }
+        });
+      }
     }
   }
 }
