@@ -444,7 +444,7 @@ namespace FFT.Market.Engines.WavePattern
 
     private void SetETriggerValue()
     {
-      ETriggerValue = _bars.BarsInfo.Instrument.Round2Tick(Direction.IsUp
+      ETriggerValue = _bars.BarsInfo.Instrument.RoundPrice(Direction.IsUp
           ? _bars.GetHigh(P!.Index) + _eDistanceInPoints
           : _bars.GetLow(P!.Index) - _eDistanceInPoints);
       _flags |= WavePatternFlags.SetOrAdjustedETriggervalue;
@@ -452,7 +452,7 @@ namespace FFT.Market.Engines.WavePattern
 
     private void SetXTriggerValue()
     {
-      XTriggerValue = _bars.BarsInfo.Instrument.Round2Tick(Direction.IsUp
+      XTriggerValue = _bars.BarsInfo.Instrument.RoundPrice(Direction.IsUp
           ? A.Value + _xDistanceInPoints
           : A.Value - _xDistanceInPoints);
     }
@@ -466,7 +466,7 @@ namespace FFT.Market.Engines.WavePattern
         {
           // does the completed bar have a lower high than the P bar?
           // If so, we can bring the ETriggerValue down a bit.
-          var newValue = _bars.BarsInfo.Instrument.Round2Tick(PreviousHigh + _eDistanceInPoints);
+          var newValue = _bars.BarsInfo.Instrument.RoundPrice(PreviousHigh + _eDistanceInPoints);
           if (newValue < ETriggerValue!.Value)
           {
             ETriggerValue = newValue;
@@ -478,7 +478,7 @@ namespace FFT.Market.Engines.WavePattern
         {
           // does the completed bar have a higher low than the P bar? 
           // If so, we can bring the ETriggerValue up a bit.
-          var newValue = _bars.BarsInfo.Instrument.Round2Tick(PreviousLow - _eDistanceInPoints);
+          var newValue = _bars.BarsInfo.Instrument.RoundPrice(PreviousLow - _eDistanceInPoints);
           if (newValue > ETriggerValue!.Value)
           {
             ETriggerValue = newValue;

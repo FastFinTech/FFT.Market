@@ -17,21 +17,33 @@ namespace FFT.Market.Instruments
 
     SettlementTime SettlementTime { get; }
 
-    double TickSize { get; }
+    double MinPriceIncrement { get; }
 
-    DateStamp ThisOrNextTradingDay(DateStamp date);
+    double MinQtyIncrement { get; }
 
-    DateStamp ThisOrPreviousTradingDay(DateStamp date);
+    DateStamp ThisOrNextTradingDay(DateStamp date)
+    {
+      while (!IsTradingDay(date))
+        date = date.AddDays(1);
+      return date;
+    }
+
+    DateStamp ThisOrPreviousTradingDay(DateStamp date)
+    {
+      while (!IsTradingDay(date))
+        date = date.AddDays(-1);
+      return date;
+    }
 
     bool IsTradingDay(DateStamp date);
 
-    double TicksToPoints(int ticks)
-      => (double)(ticks * (decimal)TickSize);
+    double IncrementsToPoints(int numIncrements)
+      => (double)(numIncrements * (decimal)MinPriceIncrement);
 
-    double Round2Tick(double value)
-      => value.RoundToTick(TickSize);
+    double RoundPrice(double value)
+      => value.RoundToIncrement(MinPriceIncrement);
 
-    double AddTicks(double value, int numTicks)
-      => value.AddTicks(TickSize, numTicks);
+    double AddIncrements(double value, int numIncrements)
+      => value.AddIncrements(MinPriceIncrement, numIncrements);
   }
 }

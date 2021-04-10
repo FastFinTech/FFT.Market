@@ -28,9 +28,9 @@ namespace FFT.Market.BarBuilders
       : base(barsInfo)
     {
       _period = (barsInfo.Period as PriceActionPeriod) ?? throw new ArgumentException("period");
-      _tickSize = barsInfo.Instrument.TickSize;
-      _trendBarSizeInPoints = barsInfo.Instrument.TicksToPoints(_period.TrendBarSizeInTicks);
-      _reversalBarSizeInPoints = barsInfo.Instrument.TicksToPoints(_period.ReversalBarSizeInTicks);
+      _tickSize = barsInfo.Instrument.MinPriceIncrement;
+      _trendBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(_period.TrendBarSizeInTicks);
+      _reversalBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(_period.ReversalBarSizeInTicks);
     }
 
     protected override void BarBuilderOnTick(Tick tick)
@@ -103,19 +103,19 @@ namespace FFT.Market.BarBuilders
     {
       if (_trend.IsUp)
       {
-        _currentBarMaxHigh = (currentBarOpenPrice + _trendBarSizeInPoints).RoundToTick(_tickSize);
-        _currentBarMinLow = (currentBarOpenPrice - _reversalBarSizeInPoints).RoundToTick(_tickSize);
+        _currentBarMaxHigh = (currentBarOpenPrice + _trendBarSizeInPoints).RoundToIncrement(_tickSize);
+        _currentBarMinLow = (currentBarOpenPrice - _reversalBarSizeInPoints).RoundToIncrement(_tickSize);
       }
       else
       {
-        _currentBarMaxHigh = (currentBarOpenPrice + _reversalBarSizeInPoints).RoundToTick(_tickSize);
-        _currentBarMinLow = (currentBarOpenPrice - _trendBarSizeInPoints).RoundToTick(_tickSize);
+        _currentBarMaxHigh = (currentBarOpenPrice + _reversalBarSizeInPoints).RoundToIncrement(_tickSize);
+        _currentBarMinLow = (currentBarOpenPrice - _trendBarSizeInPoints).RoundToIncrement(_tickSize);
       }
 
-      _nextOpenUp = _currentBarMaxHigh.AddTicks(_tickSize, 1);
-      _nextOpenDown = _currentBarMinLow.AddTicks(_tickSize, -1);
-      _nextBarMaxHigh = (_nextOpenUp + _trendBarSizeInPoints).RoundToTick(_tickSize);
-      _nextBarMinLow = (_nextOpenDown - _trendBarSizeInPoints).RoundToTick(_tickSize);
+      _nextOpenUp = _currentBarMaxHigh.AddIncrements(_tickSize, 1);
+      _nextOpenDown = _currentBarMinLow.AddIncrements(_tickSize, -1);
+      _nextBarMaxHigh = (_nextOpenUp + _trendBarSizeInPoints).RoundToIncrement(_tickSize);
+      _nextBarMinLow = (_nextOpenDown - _trendBarSizeInPoints).RoundToIncrement(_tickSize);
     }
 
     private void CloseBarAtMaxHigh()

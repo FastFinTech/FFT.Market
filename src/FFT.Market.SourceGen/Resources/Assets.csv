@@ -1,0 +1,607 @@
+﻿AssetType,Name,Symbol
+Currency,USD,USD
+Currency,AUD,AUD
+Currency,SGD,SGD
+Currency,GBP,GBP
+Currency,NZD,NZD
+Currency,CHF,CHF
+Currency,CAD,CAD
+Crypto,Bitcoin,BTC
+Crypto,Ethereum,ETH
+Crypto,Binance Coin,BNB
+Crypto,XRP,XRP
+Crypto,Tether,USDT
+Crypto,Cardano,ADA
+Crypto,Polkadot,DOT
+Crypto,Uniswap,UNI
+Crypto,Litecoin,LTC
+Crypto,Chainlink,LINK
+Crypto,THETA,THETA
+Crypto,Bitcoin Cash,BCH
+Crypto,Stellar,XLM
+Crypto,USD Coin,USDC
+Crypto,Filecoin,FIL
+Crypto,TRON,TRX
+Crypto,Wrapped Bitcoin,WBTC
+Crypto,Klaytn,KLAY
+Crypto,Dogecoin,DOGE
+Crypto,VeChain,VET
+Crypto,Solana,SOL
+Crypto,Terra,LUNA
+Crypto,BitTorrent,BTT
+Crypto,EOS,EOS
+Crypto,IOTA,MIOTA
+Crypto,Crypto.com Coin,CRO
+Crypto,Monero,XMR
+Crypto,Tezos,XTZ
+Crypto,Binance USD,BUSD
+Crypto,Bitcoin SV,BSV
+Crypto,Aave,AAVE
+Crypto,FTX Token,FTT
+Crypto,Cosmos,ATOM
+Crypto,Neo,NEO
+Crypto,Avalanche,AVAX
+Crypto,Holo,HOT
+Crypto,Kusama,KSM
+Crypto,NEM,XEM
+Crypto,Algorand,ALGO
+Crypto,Huobi Token,HT
+Crypto,Dai,DAI
+Crypto,Elrond,EGLD
+Crypto,PancakeSwap,CAKE
+Crypto,Hedera Hashgraph,HBAR
+Crypto,Chiliz,CHZ
+Crypto,Bitcoin BEP2,BTCB
+Crypto,Dash,DASH
+Crypto,Enjin Coin,ENJ
+Crypto,THORChain,RUNE
+Crypto,Decred,DCR
+Crypto,NEAR Protocol,NEAR
+Crypto,Compound,COMP
+Crypto,Synthetix,SNX
+Crypto,Ethereum Classic,ETC
+Crypto,Zilliqa,ZIL
+Crypto,Stacks,STX
+Crypto,The Graph,GRT
+Crypto,Maker,MKR
+Crypto,Zcash,ZEC
+Crypto,UNUS SED LEO,LEO
+Crypto,Bitcoin Gold,BTG
+Crypto,Theta Fuel,TFUEL
+Crypto,Basic Attention Token,BAT
+Crypto,SushiSwap,SUSHI
+Crypto,Celsius,CEL
+Crypto,Polygon,MATIC
+Crypto,yearn.finance,YFI
+Crypto,TerraUSD,UST
+Crypto,Pundi X[old],NPXS
+Crypto,Ravencoin,RVN
+Crypto,Decentraland,MANA
+Crypto,Nexo,NEXO
+Crypto,Qtum,QTUM
+Crypto,Dent,DENT
+Crypto,Ontology,ONT
+Crypto,ICON,ICX
+Crypto,Waves,WAVES
+Crypto,Harmony,ONE
+Crypto,UMA,UMA
+Crypto,$1,403,386,738,
+Crypto,Siacoin,SC
+Crypto,OMG Network,OMG
+Crypto,Helium,HNT
+Crypto,Bancor,BNT
+Crypto,DigiByte,DGB
+Crypto,Flow,FLOW
+Crypto,OKB,OKB
+Crypto,SwissBorg,CHSB
+Crypto,Fantom,FTM
+Crypto,Revain,REV
+Crypto,Conflux Network,CFX
+Crypto,Reserve Rights,RSR
+Crypto,KuCoin Token,KCS
+Crypto,Ankr,ANKR
+Crypto,Arweave,AR
+Crypto,Ren,REN
+Crypto,BTMX,BTMX
+Crypto,Voyager Token,VGX
+Crypto,WazirX,WRX
+Crypto,Celo,CELO
+Crypto,Lisk,LSK
+Crypto,Paxos Standard,PAX
+Crypto,IOST,IOST
+Crypto,Origin Protocol,OGN
+Crypto,Curve DAO Token,CRV
+Crypto,Mdex,MDX
+Crypto,DODO,DODO
+Crypto,Horizen,ZEN
+Crypto,Nano,NANO
+Crypto,Ocean Protocol,OCEAN
+Crypto,Nervos Network,CKB
+Crypto,Verge,XVG
+Crypto,HUSD,HUSD
+Crypto,renBTC,RENBTC
+Crypto,Loopring,LRC
+Crypto,ZKSwap,ZKS
+Crypto,Livepeer,LPT
+Crypto,Kyber Network,KNC
+Crypto,Storj,STORJ
+Crypto,StormX,STMX
+Crypto,Bitcoin Diamond,BCD
+Crypto,WINk,WIN
+Crypto,HedgeTrade,HEDG
+Crypto,Status,SNT
+Crypto,Komodo,KMD
+Crypto,Bitcoin Standard Hashrate Token,BTCST
+Crypto,Kin,KIN
+Crypto,MaidSafeCoin,MAID
+Crypto,Energy Web Token,EWT
+Crypto,Venus,XVS
+Crypto,NKN,NKN
+Crypto,Augur,REP
+Crypto,VeThor Token,VTHO
+Crypto,Golem,GLM
+Crypto,MediBloc,MED
+Crypto,Aragon,ANT
+Crypto,Quant,QNT
+Crypto,IoTeX,IOTX
+Crypto,Fetch.ai,FET
+Crypto,The Sandbox,SAND
+Crypto,FUNToken,FUN
+Crypto,SKALE Network,SKL
+Crypto,Alpha Finance Lab,ALPHA
+Crypto,Orbs,ORBS
+Crypto,Reef,REEF
+Crypto,Kava.io,KAVA
+Crypto,Swipe,SXP
+Crypto,SingularityNET,AGI
+Crypto,Velas,VLX
+Crypto,Celer Network,CELR
+Crypto,Steem,STEEM
+Crypto,Civic,CVC
+Crypto,Balancer,BAL
+Crypto,BitShares,BTS
+Crypto,Numeraire,NMR
+Crypto,WAX,WAXP
+Crypto,Badger DAO,BADGER
+Crypto,TrustSwap,SWAP
+Crypto,Band Protocol,BAND
+Crypto,Ardor,ARDR
+Crypto,Ark,ARK
+Crypto,Telcoin,TEL
+Crypto,Metal,MTL
+Crypto,CyberVein,CVT
+Crypto,Metadium,META
+Crypto,Stratis,STRAX
+Crypto,Wootrade,WOO
+Crypto,JUST,JST
+Crypto,TrueUSD,TUSD
+Crypto,Wanchain,WAN
+Crypto,Polymath,POLY
+Crypto,Serum,SRM
+Crypto,Orchid,OXT
+Crypto,Unibright,UBT
+Crypto,Oasis Network,ROSE
+Crypto,OriginTrail,TRAC
+Crypto,Utrust,UTK
+Crypto,Sora,XOR
+Crypto,Syntropy,NOIA
+Crypto,Everipedia,IQ
+Crypto,Travala.com,AVA
+Crypto,BORA,BORA
+Crypto,COTI,COTI
+Crypto,Polkastarter,POLS
+Crypto,Gnosis,GNO
+Crypto,TomoChain,TOMO
+Crypto,Bytom,BTM
+Crypto,RSK Infrastructure Framework,RIF
+Crypto,QuarkChain,QKC
+Crypto,Hive,HIVE
+Crypto,Handshake,HNS
+Crypto,Hifi Finance,MFT
+Crypto,Haven Protocol,XHV
+Crypto,Injective Protocol,INJ
+Crypto,NuCypher,NU
+Crypto,Populous,PPT
+Crypto,Syscoin,SYS
+Crypto,ZB Token,ZB
+Crypto,ReddCoin,RDD
+Crypto,HEX,HEX
+Crypto,Creditcoin,CTC
+Crypto,Wrapped BNB,WBNB
+Crypto,Bridge Oracle,BRG
+Crypto,Counos X,CCXX
+Crypto,Huobi BTC,HBTC
+Crypto,Fei Protocol,FEI
+Crypto,ECOMI,OMI
+Crypto,DeFiChain,DFI
+Crypto,Orbit Chain,ORC
+Crypto,INO COIN,INO
+Crypto,WhiteCoin,XWC
+Crypto,ThoreCoin,THR
+Crypto,The Transfer Token,TTT
+Crypto,XinFin Network,XDC
+Crypto,Bitpanda Ecosystem Token,BEST
+Crypto,Venus BNB,vBNB
+Crypto,Bitcoin Cash ABC,BCHA
+Crypto,Mirror Protocol,MIR
+Crypto,KLAYswap Protocol,KSP
+Crypto,Electroneum,ETN
+Crypto,NXM,NXM
+Crypto,Linear,LINA
+Crypto,Mixin,XIN
+Crypto,RedFOX Labs,RFOX
+Crypto,Zelwin,ZLW
+Crypto,MVL,MVL
+Crypto,stETH (Lido),STETH
+Crypto,Axie Infinity,AXS
+Crypto,Orion Protocol,ORN
+Crypto,Keep Network,KEEP
+Crypto,Sologenic,SOLO
+Crypto,Tribe,TRIBE
+Crypto,PAID Network,PAID
+Crypto,Klever,KLV
+Crypto,SafePal,SFP
+Crypto,Attila,ATT
+Crypto,Hathor,HTR
+Crypto,MATH,MATH
+Crypto,Akash Network,AKT
+Crypto,Audius,AUDIO
+Crypto,GNY,GNY
+Crypto,Amp,AMP
+Crypto,Anchor Protocol,ANC
+Crypto,SuperFarm,SUPER
+Crypto,Toko Token,TKO
+Crypto,Venus XVS,vXVS
+Crypto,Eauric,EAURIC
+Crypto,TROY,TROY
+Crypto,Edgeware,EDG
+Crypto,$251,792,986,
+Crypto,PARSIQ,PRQ
+Crypto,Maro,MARO
+Crypto,Raydium,RAY
+Crypto,Ethernity Chain,ERN
+Crypto,Dawn Protocol,DAWN
+Crypto,Atari Token,ATRI
+Crypto,Venus BTC,vBTC
+Crypto,KardiaChain,KAI
+Crypto,Render Token,RNDR
+Crypto,PIBBLE,PIB
+Crypto,LTO Network,LTO
+Crypto,aelf,ELF
+Crypto,iExec RLC,RLC
+Crypto,MyNeighborAlice,ALICE
+Crypto,Neutrino USD,USDN
+Crypto,Power Ledger,POWR
+Crypto,LUKSO,LYXe
+Crypto,AMO Coin,AMO
+Crypto,Secret,SCRT
+Crypto,dKargo,DKA
+Crypto,Carry,CRE
+Crypto,Ampleforth,AMPL
+Crypto,IRISnet,IRIS
+Crypto,Litentry,LIT
+Crypto,Hellenic Coin,HNC
+Crypto,Shopping,SPI
+Crypto,Akropolis,AKRO
+Crypto,BakeryToken,BAKE
+Crypto,CoinMetro Token,XCM
+Crypto,Bytecoin,BCN
+Crypto,Aion,AION
+Crypto,MiL.k,MLK
+Crypto,GateToken,GT
+Crypto,Mask Network,MASK
+Crypto,SUN,SUN
+Crypto,Everest,ID
+Crypto,DerivaDAO,DDX
+Crypto,Loom Network,LOOM
+Crypto,Marlin,POND
+Crypto,Phala Network,PHA
+Crypto,Streamr,DATA
+Crypto,ShareToken,SHR
+Crypto,Elastos,ELA
+Crypto,district0x,DNT
+Crypto,MimbleWimbleCoin,MWC
+Crypto,Cartesi,CTSI
+Crypto,Trust Wallet Token,TWT
+Crypto,xDai,STAKE
+Crypto,Vai,VAI
+Crypto,Rocket Pool,RPL
+Crypto,Gala,GALA
+Crypto,Uquid Coin,UQC
+Crypto,PAC Protocol,PAC
+Crypto,Perpetual Protocol,PERP
+Crypto,bZx Protocol,BZRX
+Crypto,Enzyme,MLN
+Crypto,Ellipsis,EPS
+Crypto,RChain,REV
+Crypto,Thunder Token,TT
+Crypto,MovieBloc,MBL
+Crypto,Tokenlon Network Token,LON
+Crypto,MCO,MCO
+Crypto,Lambda,LAMB
+Crypto,Waltonchain,WTC
+Crypto,Request,REQ
+Crypto,RAMP,RAMP
+Crypto,AdEx Network,ADX
+Crypto,Elitium,EUM
+Crypto,Apollo Currency,APL
+Crypto,Bluzelle,BLZ
+Crypto,Ultra,UOS
+Crypto,Mithril,MITH
+Crypto,Verasity,VRA
+Crypto,Dusk Network,DUSK
+Crypto,Bella Protocol,BEL
+Crypto,NewYork Exchange,NYE
+Crypto,Energi,NRG
+Crypto,Chromia,CHR
+Crypto,CasinoCoin,CSC
+Crypto,MonaCoin,MONA
+Crypto,sUSD,SUSD
+Crypto,Terra Virtua Kolect,TVK
+Crypto,Beefy.Finance,BIFI
+Crypto,Rally,RLY
+Crypto,Oxygen,OXY
+Crypto,Bloomzed Loyalty Club Ticket,BLCT
+Crypto,Firo,FIRO
+Crypto,Vesper,VSP
+Crypto,Chimpion,BNANA
+Crypto,WHALE,WHALE
+Crypto,MXC,MXC
+Crypto,Sapphire,SAPP
+Crypto,botXcoin,BOTX
+Crypto,Ferrum Network,FRM
+Crypto,DSLA Protocol,DSLA
+Crypto,Flamingo,FLM
+Crypto,Kadena,KDA
+Crypto,Morpheus.Network,MRPH
+Crypto,TitanSwap,TITAN
+Crypto,Refereum,RFR
+Crypto,saffron.finance,SFI
+Crypto,Gas,GAS
+Crypto,Crust,CRU
+Crypto,DIA,DIA
+Crypto,Gemini Dollar,GUSD
+Crypto,inSure DeFi,SURE
+Crypto,BSCPAD,BSCPAD
+Crypto,Doctors Coin,DRS
+Crypto,Dego Finance,DEGO
+Crypto,DxChain Token,DX
+Crypto,NULS,NULS
+Crypto,Divi,DIVI
+Crypto,Bounce Token,AUCTION
+Crypto,ARPA Chain,ARPA
+Crypto,Drep [new],DREP
+Crypto,Strike,STRK
+Crypto,XeniosCoin,XNC
+Crypto,Nerve Finance,NRV
+Crypto,MANTRA DAO,OM
+Crypto,HARD Protocol,HARD
+Crypto,PIVX,PIVX
+Crypto,VITE,VITE
+Crypto,DAO Maker,DAO
+Crypto,EFFORCE,WOZX
+Crypto,Humanscape,HUM
+Crypto,ALBT,$124,207,468
+Crypto,CTK,$123,850,485
+Crypto,RGT,$123,782,644
+Crypto,REVV,REVV
+Crypto,GreenPower,GRN
+Crypto,VideoCoin,VID
+Crypto,API3,API3
+Crypto,Zenon,ZNN
+Crypto,LBRY Credits,LBC
+Crypto,SOLVE,SOLVE
+Crypto,KIMCHI.finance,KIMCHI
+Crypto,Phoenix Global,PHB
+Crypto,SparkPoint,SRK
+Crypto,ChainX,PCX
+Crypto,Harvest Finance,FARM
+Crypto,Newscrypto,NWC
+Crypto,Ignis,IGNIS
+Crypto,Frontier,FRONT
+Crypto,Centrality,CENNZ
+Crypto,DFI.Money,YFII
+Crypto,ABBC Coin,ABBC
+Crypto,Contentos,COS
+Crypto,Super Zero Protocol,SERO
+Crypto,BOSAGORA,BOA
+Crypto,Frax,FRAX
+Crypto,Spendcoin,SPND
+Crypto,v.systems,VSYS
+Crypto,Dragonchain,DRGN
+Crypto,Tellor,TRB
+Crypto,Selfkey,KEY
+Crypto,Perlin,PERL
+Crypto,NativeCoin,N8V
+Crypto,Nexus,NXS
+Crypto,Beam,BEAM
+Crypto,PAX Gold,PAXG
+Crypto,WaykiChain,WICC
+Crypto,Radix,EXRD
+Crypto,Cindicator,CND
+Crypto,Function X,FX
+Crypto,ELYSIA,EL
+Crypto,Hegic,HEGIC
+Crypto,BaaSid,BAAS
+Crypto,Hxro,HXRO
+Crypto,ZeroSwap,ZEE
+Crypto,Cream Finance,CREAM
+Crypto,Sentinel Protocol,UPP
+Crypto,NEST Protocol,NEST
+Crypto,Darwinia Network,RING
+Crypto,Mobilian Coin,MBN
+Crypto,Massnet,MASS
+Crypto,Sentivate,SNTVT
+Crypto,MX Token,MX
+Crypto,Venus USDC,vUSDC
+Crypto,Wrapped NXM,WNXM
+Crypto,Hacken Token,HAI
+Crypto,Observer,OBSR
+Crypto,Nimiq,NIM
+Crypto,IDEX,IDEX
+Crypto,Smartlands Network,SLT
+Crypto,Aeternity,AE
+Crypto,FC Barcelona Fan Token,BAR
+Crypto,LockTrip,LOC
+Crypto,Huobi Pool Token,HPT
+Crypto,BnkToTheFuture,BFT
+Crypto,Endor Protocol,EDR
+Crypto,Standard Tokenization Protocol,STPT
+Crypto,Switcheo,SWTH
+Crypto,Pirate Chain,ARRR
+Crypto,Gifto,GTO
+Crypto,Unifi Protocol DAO,UNFI
+Crypto,BarnBridge,BOND
+Crypto,DuckDaoDime,DDIM
+Crypto,FIO Protocol,FIO
+Crypto,Wing,WING
+Crypto,Aergo,AERGO
+Crypto,yOUcash,YOUC
+Crypto,Ripio Credit Network,RCN
+Crypto,Electric Vehicle Zone,EVZ
+Crypto,XYO,XYO
+Crypto,Proton,XPR
+Crypto,Moss Coin,MOC
+Crypto,Skycoin,SKY
+Crypto,Dock,DOCK
+Crypto,Nxt,NXT
+Crypto,Cortex,CTXC
+Crypto,Radicle,RAD
+Crypto,SUKU,SUKU
+Crypto,Constellation,DAG
+Crypto,Venus ETH,vETH
+Crypto,Quantstamp,QSP
+Crypto,HyperCash,HC
+Crypto,Dentacoin,DCN
+Crypto,MAPS,MAPS
+Crypto,Spartan Protocol,SPARTA
+Crypto,Aurora,AOA
+Crypto,Empty Set Dollar,ESD
+Crypto,Oxen,OXEN
+Crypto,Einsteinium,EMC2
+Crypto,$80,277,333,
+Crypto,NFTX,NFTX
+Crypto,Belt,BELT
+Crypto,Frax Share,FXS
+Crypto,GET Protocol,GET
+Crypto,PowerPool,CVP
+Crypto,Groestlcoin,GRS
+Crypto,Minter Network,BIP
+Crypto,The Midas Touch Gold,TMTG
+Crypto,Sport and Leisure,SNL
+Crypto,CyberFi Token,CFi
+Crypto,pNetwork,PNT
+Crypto,Prometeus,PROM
+Crypto,$76,692,746,
+Crypto,Decentral Games,DG
+Crypto,Wabi,WABI
+Crypto,Big Data Protocol,BDP
+Crypto,AXEL,AXEL
+Crypto,Meme,MEME
+Crypto,Kylin,KYL
+Crypto,Swingby,SWINGBY
+Crypto,Quiztok,QTCON
+Crypto,GXChain,GXC
+Crypto,JulSwap,JULD
+Crypto,DeXe,DEXE
+Crypto,Ergo,ERG
+Crypto,GoChain,GO
+Crypto,Poolz Finance,POOLZ
+Crypto,AirSwap,AST
+Crypto,EasyFi,EASY
+Crypto,Grin,GRIN
+Crypto,DragonVein,DVC
+Crypto,OctoFi,OCTO
+Crypto,Nebulas,NAS
+Crypto,BoringDAO,BOR
+Crypto,Tornado Cash,TORN
+Crypto,Morpheus Labs,MITX
+Crypto,DEXTools,DEXT
+Crypto,TurtleCoin,TRTL
+Crypto,Beldex,BDX
+Crypto,Burger Swap,BURGER
+Crypto,Project Pai,PAI
+Crypto,PIXEL,PXL
+Crypto,Kleros,PNK
+Crypto,Nexalt,XLT
+Crypto,Penta,PNT
+Crypto,DMarket,DMT
+Crypto,Phantasma,SOUL
+Crypto,Propy,PRO
+Crypto,BABB,BAX
+Crypto,Qcash,QC
+Crypto,Poseidon Network,QQQ
+Crypto,Fusion,FSN
+Crypto,DigitalBits,XDB
+Crypto,Bifrost (BFC),BFC
+Crypto,TrueFi,TRU
+Crypto,Davinci Coin,DAC
+Crypto,VIDY,$65,667,549
+Crypto,DORA,$65,252,603
+Crypto,VIDT Datalink,VIDT
+Crypto,InsurAce,INSUR
+Crypto,HUNT,HUNT
+Crypto,Polkamon,PMON
+Crypto,TEMCO,TEMCO
+Crypto,LATOKEN,LA
+Crypto,Sentinel,DVPN
+Crypto,Blank Wallet,BLANK
+Crypto,YIELD App,YLD
+Crypto,MAP Protocol,MAP
+Crypto,Raiden Network Token,RDN
+Crypto,TokenClub,TCT
+Crypto,ankrETH,aEth
+Crypto,Cocos-BCX,COCOS
+Crypto,Nucleus Vision,NCASH
+Crypto,Alpha Quark Token,AQT
+Crypto,DeepBrain Chain,DBC
+Crypto,Robonomics.network,XRT
+Crypto,Etherisc DIP Token,DIP
+Crypto,BTU Protocol,BTU
+Crypto,Tokamak Network,TON
+Crypto,Genesis Vision,GVT
+Crypto,Neblio,NEBL
+Crypto,Bonfida,FIDA
+Crypto,Bondly,BONDLY
+Crypto,DAD,DAD
+Crypto,Navcoin,NAV
+Crypto,STASIS EURO,EURS
+Crypto,cVault.finance,CORE
+Crypto,QASH,QASH
+Crypto,Measurable Data Token,MDT
+Crypto,BLink,BLINK
+Crypto,Basid Coin,BASID
+Crypto,Venus BUSD,vBUSD
+Crypto,Metaverse Dualchain Network Architecture,DNA
+Crypto,Helmet.insure,HELMET
+Crypto,Steem Dollars,SBD
+Crypto,Aleph.im,ALEPH
+Crypto,JustLiquidity,JUL
+Crypto,Cashaa,CAS
+Crypto,Stakenet,XSN
+Crypto,Vitae,VITAE
+Crypto,RSK Smart Bitcoin,RBTC
+Crypto,Olyseum,OLY
+Crypto,Duck DAO (DLP Duck Token),DUCK
+Crypto,TerraKRW,KRT
+Crypto,Bridge Mutual,BMI
+Crypto,Finxflo,FXF
+Crypto,Bao Finance,BAO
+Crypto,Mushroom,MUSH
+Crypto,LCX,LCX
+Crypto,BASIC,BASIC
+Crypto,BitKan,KAN
+Crypto,ASTA,ASTA
+Crypto,Auto,AUTO
+Crypto,Aavegotchi,GHST
+Crypto,Anyswap,ANY
+Crypto,Bankera,BNK
+Crypto,AntiMatter,MATTER
+Crypto,Illuvium,ILV
+Crypto,VerusCoin,VRSC
+Crypto,Polkamarkets,POLK
+Crypto,LABS Group,LABS
+Crypto,BitZ Token,BZ
+Crypto,mStable Governance Token: Meta (MTA),MTA
+Crypto,Oraichain Token,ORAI
+Crypto,GameCredits,GAME

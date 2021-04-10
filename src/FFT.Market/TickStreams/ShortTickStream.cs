@@ -22,14 +22,14 @@ namespace FFT.Market.TickStreams
 
     public ShortTickStream(IInstrument instrument)
     {
-      _tickSize = instrument.TickSize;
+      _tickSize = instrument.MinPriceIncrement;
       _sequence = new Sequence<byte>(ArrayPool<byte>.Shared);
       Instrument = instrument;
     }
 
     public ShortTickStream(IInstrument instrument, ReadOnlySpan<byte> bytes)
     {
-      _tickSize = instrument.TickSize;
+      _tickSize = instrument.MinPriceIncrement;
       _sequence = new Sequence<byte>(ArrayPool<byte>.Shared);
       _sequence.Write(bytes);
       Instrument = instrument;
@@ -41,7 +41,7 @@ namespace FFT.Market.TickStreams
 
     public ShortTickStream(IInstrument instrument, Sequence<byte> sequence)
     {
-      _tickSize = instrument.TickSize;
+      _tickSize = instrument.MinPriceIncrement;
       _sequence = sequence;
       Instrument = instrument;
       DataLength = _sequence.Length;
@@ -70,9 +70,9 @@ namespace FFT.Market.TickStreams
       }
       else
       {
-        writer.Write((tick.Price - _previousTick.Price).ToTicks(_tickSize));
-        writer.Write((tick.Bid - _previousTick.Bid).ToTicks(_tickSize));
-        writer.Write((tick.Ask - _previousTick.Ask).ToTicks(_tickSize));
+        writer.Write((tick.Price - _previousTick.Price).ToIncrements(_tickSize));
+        writer.Write((tick.Bid - _previousTick.Bid).ToIncrements(_tickSize));
+        writer.Write((tick.Ask - _previousTick.Ask).ToIncrements(_tickSize));
         writer.Write((ulong)tick.Volume);
         writer.Write((ulong)(tick.TimeStamp.TicksUtc - _previousTick.TimeStamp.TicksUtc));
       }
@@ -190,9 +190,9 @@ namespace FFT.Market.TickStreams
         }
         else
         {
-          var price = _previousTick.Price.AddTicks(_tickSize, reader.ReadInt32());
-          var bid = _previousTick.Bid.AddTicks(_tickSize, reader.ReadInt32());
-          var ask = _previousTick.Ask.AddTicks(_tickSize, reader.ReadInt32());
+          var price = _previousTick.Price.AddIncrements(_tickSize, reader.ReadInt32());
+          var bid = _previousTick.Bid.AddIncrements(_tickSize, reader.ReadInt32());
+          var ask = _previousTick.Ask.AddIncrements(_tickSize, reader.ReadInt32());
           var volume = (double)reader.ReadUInt64();
           var timeStamp = _previousTick.TimeStamp.AddTicks((long)reader.ReadUInt64());
 

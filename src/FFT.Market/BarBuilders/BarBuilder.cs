@@ -64,6 +64,6 @@ namespace FFT.Market.BarBuilders
     protected abstract void BarBuilderOnTick(Tick tick);
 
     protected double ToTick(double price)
-      => price.RoundToTick(BarsInfo.Instrument.TickSize);
+      => price.RoundToIncrement(BarsInfo.Instrument.MinPriceIncrement);
   }
 }

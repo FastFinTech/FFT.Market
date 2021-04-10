@@ -8,12 +8,11 @@ namespace FFT.Market.Instruments
   [DebuggerDisplay("{Name}")]
   public sealed record Asset
   {
-    public Asset(AssetType type, string name)
-      => (Type, Name) = (type, name);
+    public Asset(AssetType type, string name, string usualSymbol)
+      => (Type, Name, UsualSymbol) = (type, name, usualSymbol);
 
     public AssetType Type { get; init; }
     public string Name { get; init; }
-
-    public static readonly Asset BitCoin = new Asset(AssetType.Crypto, "BitCoin");
+    public string UsualSymbol { get; init; }
   }
 }

@@ -19,8 +19,8 @@ namespace FFT.Market.BarBuilders
       : base(info)
     {
       _period = (info.Period as RangePeriod) ?? throw new ArgumentException("period");
-      _tickSize = info.Instrument.TickSize;
-      _rangeInPoints = info.Instrument.TicksToPoints(_period.TicksPerBar);
+      _tickSize = info.Instrument.MinPriceIncrement;
+      _rangeInPoints = info.Instrument.IncrementsToPoints(_period.TicksPerBar);
     }
 
     private double MaxHigh => ToTick(_barInProgress.Low + _rangeInPoints);

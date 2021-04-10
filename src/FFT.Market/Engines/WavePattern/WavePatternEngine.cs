@@ -34,9 +34,9 @@ namespace FFT.Market.Engines.WavePattern
         : base(processingContext, settings)
     {
       _bars = ProcessingContext.GetBars(barsInfo);
-      _eDistanceInPoints = _bars.BarsInfo.Instrument.TicksToPoints(settings.ETicks);
-      _xDistanceInPoints = _bars.BarsInfo.Instrument.TicksToPoints(settings.XTicks);
-      _reversalOffsetInPoints = _bars.BarsInfo.Instrument.TicksToPoints(settings.ReversalOffsetTicks);
+      _eDistanceInPoints = _bars.BarsInfo.Instrument.IncrementsToPoints(settings.ETicks);
+      _xDistanceInPoints = _bars.BarsInfo.Instrument.IncrementsToPoints(settings.XTicks);
+      _reversalOffsetInPoints = _bars.BarsInfo.Instrument.IncrementsToPoints(settings.ReversalOffsetTicks);
       _initializer = new Initializer(_bars);
     }
 
@@ -377,7 +377,7 @@ namespace FFT.Market.Engines.WavePattern
       public Initializer(IBars bars)
       {
         _bars = bars;
-        _targetDistance = _bars.BarsInfo.Instrument.TicksToPoints(50);
+        _targetDistance = _bars.BarsInfo.Instrument.IncrementsToPoints(50);
       }
 
       /// <summary>

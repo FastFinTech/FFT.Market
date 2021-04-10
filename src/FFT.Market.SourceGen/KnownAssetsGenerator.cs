@@ -4,14 +4,14 @@
 namespace FFT.Market.SourceGen
 {
   using System;
-  using System.Diagnostics;
+  using System.Collections.Generic;
   using System.Linq;
   using System.Text;
   using System.Threading;
   using Microsoft.CodeAnalysis;
 
   [Generator]
-  public class KnownExchangesGenerator : ISourceGenerator
+  public class KnownAssetsGenerator : ISourceGenerator
   {
     public void Initialize(GeneratorInitializationContext context)
     {
@@ -25,25 +25,28 @@ namespace FFT.Market.SourceGen
 namespace FFT.Market.Instruments
 {
   [System.CodeDom.Compiler.GeneratedCode("""", """")]
-  public static partial class KnownExchanges
+  public static partial class KnownAssets
   {
 [fields]  }
 }
 ";
 
       var sb = new StringBuilder();
-      foreach (var line in Properties.Resources.Exchanges.Split('\n').Skip(1))
+      foreach (var line in Properties.Resources.Assets.Split('\n').Skip(1))
       {
         if (string.IsNullOrEmpty(line)) continue;
         if (line.StartsWith("#")) continue;
-        var shortName = line.Trim();
-        // long names are not yet added to the resources file.
-        sb.AppendLine($@"    public static readonly Exchange {shortName} = new Exchange(""{shortName}"", ""{shortName}"");");
+        var parts = line.Split(',');
+        var type = parts[0];
+        var name = parts[1];
+        var nameCode = parts[1].CleanIdentifierName();
+        var usualSymbol = parts[2];
+        sb.AppendLine($@"    public static readonly Asset {type}_{nameCode} = new Asset(AssetType.{type}, ""{name}"", ""{usualSymbol}"");");
       }
 
       result = result.Replace("[fields]", sb.ToString());
       Thread.Sleep(1);
-      context.AddSource("KnownExchanges.cs", result);
+      context.AddSource("KnownAssets.cs", result);
     }
   }
 }

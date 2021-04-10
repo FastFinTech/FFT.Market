@@ -61,7 +61,18 @@ namespace FFT.Market.SourceGen.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ShortName ///CME ///GLOBEX ///NYSE ///NASDAQ ///SGX ///CBOE ///LIFFE ///NYMEX ///ICE ///EUREX ///LSE ///ACE ///AMEX ///ARCA ///BELFOX ///BSE ///BOX ///BRUT ///BTRADE ///CFE ///DEFAULT ///ECBOT ///EUREXSW ///EUREXUS ///FTA ///HKFE ///IBIDEAL ///IBTMBR ///IBVWAP ///IDEM ///INCA ///ISE ///ISLAND ///ME ///MEFF ///MONEP ///NNM ///NQLX ///NSCM ///OES ///ONE ///OPRA ///OSE ///OTCBB ///PHLX ///PSE ///REDI ///SDOT ///SFE ///SFX ///SNFE ///SOES ///SWB ///SWX ///TSE ///TSX ///TSXV ///VIRTX ///XETRA ///IBIDEALPRO ///NYBOT ///CAES ///IPE ///MATIF ///BROKERTEC ///CLEARPORT ///KSE ///LIFFECOMMODITIES ///AEB ///ASX ///AEX ///NSE ///BVME ///HKEX ///SBF ///BM ///VSE ///SFB ///OMX ///MEXI ///BOVESPA ///TERABIT ///NADEX.
+        ///   Looks up a localized string similar to AssetType,Name
+        ///Crypto,Bitcoin
+        ///Crypto,Etherium.
+        /// </summary>
+        internal static string Assets {
+            get {
+                return ResourceManager.GetString("Assets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ShortName ///CME ///GLOBEX ///NYSE ///NASDAQ ///SGX ///CBOE ///LIFFE ///NYMEX ///ICE ///EUREX ///LSE ///ACE ///AMEX ///ARCA ///BELFOX ///BSE ///BOX ///BRUT ///BTRADE ///CFE ///DEFAULT ///ECBOT ///EUREXSW ///EUREXUS ///FTA ///HKFE ///IBIDEAL ///IBTMBR ///IBVWAP ///IDEM ///INCA ///ISE ///ISLAND ///ME ///MEFF ///MONEP ///NNM ///NQLX ///NSCM ///OES ///ONE ///OPRA ///OSE ///OTCBB ///PHLX ///PSE ///REDI ///SDOT ///SFE ///SFX ///SNFE ///SOES ///SWB ///SWX ///TSE ///TSX ///TSXV ///VIRTX ///XETRA ///IBIDEALPRO ///NYBOT ///CAES ///IPE ///MATIF ///BROKERTEC ///CLEARPORT ///KSE ///LIFFECOMMODITIES ///AEB ///ASX ///AEX ///NSE ///BVME ///HKEX ///SBF ///BM ///VSE ///SFB ///OMX ///MEXI ///BOVESPA ///TERABIT ///NADEX /// ///# Crypto exchanges ///Binance ///BinanceFutures ///BitMex ///F [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Exchanges {
             get {

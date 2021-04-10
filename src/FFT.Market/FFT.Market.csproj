@@ -23,8 +23,11 @@
 
   <ItemGroup>
     <Compile Remove="Instruments\Old\**" />
+    <Compile Remove="obj\Debug\Generated\**" />
     <EmbeddedResource Remove="Instruments\Old\**" />
+    <EmbeddedResource Remove="obj\Debug\Generated\**" />
     <None Remove="Instruments\Old\**" />
+    <None Remove="obj\Debug\Generated\**" />
   </ItemGroup>
 
   <ItemGroup>
