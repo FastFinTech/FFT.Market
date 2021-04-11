@@ -14,10 +14,10 @@ namespace FFT.Market
   public static class IHaveErrorTaskExtensions
   {
     /// <summary>
-    /// Asynchonously waits until the provider has an error or the cancellation token is canceled.
+    /// Asynchronously waits until the provider has an error or the cancellation token is canceled.
     /// If the provider reaches the error state, an exception will be thrown.
     /// Since <see cref="IHaveErrorTask"/> implementations are guaranteed to fault their <see cref="IHaveErrorTask.ErrorTask"/>
-    /// tasks with an exception, this method is also guaranteed to throw an exception. The only question is whether the exception 
+    /// tasks with an exception, this method is also guaranteed to throw an exception. The only question is whether the exception
     /// will be <see cref="OperationCanceledException"/> due to token cancellation, or the exception that faulted the given <paramref name="provider"/>.
     /// </summary>
     /// <exception cref="OperationCanceledException">Thrown when <paramref name="ct"/> is canceled.</exception>
@@ -30,7 +30,7 @@ namespace FFT.Market
     }
 
     /// <summary>
-    /// Asynchonously waits until at least one of the providers has an error or
+    /// Asynchronously waits until at least one of the providers has an error or
     /// the cancellation token is canceled. If any provider reaches the error
     /// state, an exception will be thrown. Since <see cref="IHaveErrorTask"/>
     /// implementations are guaranteed to fault their <see

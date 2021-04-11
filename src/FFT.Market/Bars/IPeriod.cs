@@ -24,7 +24,10 @@ namespace FFT.Market.Bars
     public bool IsEvenTimeSpacingBars => true;
     public int PeriodInSeconds { get; init; }
     public override string ToString() => $"{PeriodInSeconds}-Second";
-    public IPeriod Multiply(double value) => new SecondPeriod { PeriodInSeconds = Max(1, (int)(PeriodInSeconds * value)) };
+    public IPeriod Multiply(double value) => this with
+    {
+      PeriodInSeconds = Max(1, (int)(PeriodInSeconds * value))
+    };
   }
 
   public sealed record MinutePeriod : IPeriod
@@ -34,7 +37,10 @@ namespace FFT.Market.Bars
     public bool IsEvenTimeSpacingBars => true;
     public int PeriodInMinutes { get; init; }
     public override string ToString() => $"{PeriodInMinutes}-Minute";
-    public IPeriod Multiply(double value) => new MinutePeriod { PeriodInMinutes = Max(1, (int)(PeriodInMinutes * value)) };
+    public IPeriod Multiply(double value) => this with
+    {
+      PeriodInMinutes = Max(1, (int)(PeriodInMinutes * value))
+    };
   }
 
   public sealed record TickPeriod : IPeriod
@@ -44,7 +50,10 @@ namespace FFT.Market.Bars
     public bool IsEvenTimeSpacingBars => false;
     public int TicksPerBar { get; init; }
     public override string ToString() => $"{TicksPerBar}-Tick";
-    public IPeriod Multiply(double value) => new TickPeriod { TicksPerBar = Max(1, (int)(TicksPerBar * value)) };
+    public IPeriod Multiply(double value) => this with
+    {
+      TicksPerBar = Max(1, (int)(TicksPerBar * value))
+    };
   }
 
   public sealed record RangePeriod : IPeriod
@@ -54,7 +63,10 @@ namespace FFT.Market.Bars
     public bool IsEvenTimeSpacingBars => false;
     public int TicksPerBar { get; init; }
     public override string ToString() => $"{TicksPerBar}-Range";
-    public IPeriod Multiply(double value) => new RangePeriod { TicksPerBar = Max(1, (int)(TicksPerBar * value)) };
+    public IPeriod Multiply(double value) => this with
+    {
+      TicksPerBar = Max(1, (int)(TicksPerBar * value))
+    };
   }
 
   public sealed record PriceActionPeriod : IPeriod
@@ -63,18 +75,22 @@ namespace FFT.Market.Bars
     {
       TrendBarSizeInTicks = 12,
       ReversalBarSizeInTicks = 12,
+      AutoAdjustSize = false,
     };
 
     public string Name => "PriceAction";
     public bool IsEvenTimeSpacingBars => false;
     public int TrendBarSizeInTicks { get; init; }
     public int ReversalBarSizeInTicks { get; init; }
+    public bool AutoAdjustSize { get; init; }
 
     public override string ToString()
-      => $"{TrendBarSizeInTicks}/{ReversalBarSizeInTicks}-PriceAction";
+      => AutoAdjustSize
+        ? $"{TrendBarSizeInTicks}/{ReversalBarSizeInTicks}/(Auto)-PriceAction"
+        : $"{TrendBarSizeInTicks}/{ReversalBarSizeInTicks}/(Fixed)-PriceAction";
 
     public IPeriod Multiply(double value)
-      => new PriceActionPeriod
+      => this with
       {
         TrendBarSizeInTicks = (int)(TrendBarSizeInTicks * value),
         ReversalBarSizeInTicks = (int)(ReversalBarSizeInTicks * value),

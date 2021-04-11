@@ -14,7 +14,11 @@ namespace FFT.Market.Bars
     double Volume { get; set; }
     TimeStamp TimeStamp { get; set; }
     int TickCount { get; set; }
+
+    bool IsUp => Direction.IsUp;
+    bool IsDown => Direction.IsDown;
+    Direction Direction => Direction.FromValues(Open, Close);
+
     double GetValue(BarInputType inputType);
-    IBar Clone();
   }
 }

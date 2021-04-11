@@ -39,6 +39,11 @@ namespace FFT.Market.Bars
     public IPeriod Period => BarsInfo.Period;
     public IInstrument Instrument => BarsInfo.Instrument;
 
+    public IBar this[Index index]
+      => index.IsFromEnd
+        ? _bars[index]
+        : _bars[index.Value - NumRemoved];
+
     public void IncreaseMaxLookBack(int maxLookBack)
     {
       if (maxLookBack > MaxLookBack)
@@ -52,8 +57,6 @@ namespace FFT.Market.Bars
       yield return BarsInfo.Instrument;
     }
 
-    public IBar GetBar(int index) => _bars[index - NumRemoved];
-    public IBar GetLastBar() => _bars[_bars.Count - 1];
     public double GetOpen(int index) => _bars[index - NumRemoved].Open;
     public double GetHigh(int index) => _bars[index - NumRemoved].High;
     public double GetLow(int index) => _bars[index - NumRemoved].Low;

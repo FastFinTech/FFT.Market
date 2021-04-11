@@ -45,16 +45,6 @@ namespace FFT.Market.Bars
       }
     }
 
-    IBar IBar.Clone()
-    {
-      return Clone();
-    }
-
-    public virtual Bar Clone()
-    {
-      return new Bar(this);
-    }
-
     public void CumulateNextBar(Bar bar)
     {
       High = Math.Max(High, bar.High);

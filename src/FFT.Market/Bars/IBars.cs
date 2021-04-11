@@ -3,6 +3,7 @@
 
 namespace FFT.Market.Bars
 {
+  using System;
   using System.Collections.Generic;
   using FFT.Market.DataSeries;
   using FFT.Market.DependencyTracking;
@@ -25,6 +26,9 @@ namespace FFT.Market.Bars
     IReadOnlyValueSeries<double> LowValueSeries { get; }
     IReadOnlyValueSeries<double> CloseValueSeries { get; }
     IReadOnlyValueSeries<double> VolumeValueSeries { get; }
+
+    IBar this[Index index] { get; }
+
     IReadOnlyValueSeries<double> GetValueSeries(BarInputType inputType);
 
     // These two are included in the ITimeStampSeries interface:
@@ -36,9 +40,6 @@ namespace FFT.Market.Bars
     double GetClose(int index);
     double GetVolume(int index);
     double GetValue(BarInputType inputType, int index);
-
-    IBar GetBar(int index);
-    IBar GetLastBar();
 
     void AddNewBar(IBar bar);
     void UpdateLastBar(double open, double high, double low, double close, double volume, TimeStamp timestamp);

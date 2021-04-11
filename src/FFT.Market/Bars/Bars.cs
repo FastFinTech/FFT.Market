@@ -38,13 +38,13 @@ namespace FFT.Market.Bars
     public IPeriod Period => BarsInfo.Period;
     public IInstrument Instrument => BarsInfo.Instrument;
 
+    public IBar this[Index index] => _bars[index];
+
     public IEnumerable<object> GetDependencies()
     {
       yield return BarsInfo.Instrument;
     }
 
-    public IBar GetBar(int index) => _bars[index];
-    public IBar GetLastBar() => _bars[_bars.Count - 1];
     public double GetOpen(int index) => _bars[index].Open;
     public double GetHigh(int index) => _bars[index].High;
     public double GetLow(int index) => _bars[index].Low;

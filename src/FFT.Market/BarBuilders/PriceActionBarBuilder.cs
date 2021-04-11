@@ -5,17 +5,19 @@ namespace FFT.Market.BarBuilders
 {
   using System;
   using FFT.Market.Bars;
+  using FFT.Market.Instruments;
   using FFT.Market.Ticks;
   using static System.Math;
 
   public class PriceActionBarBuilder : BarBuilder
   {
     private readonly PriceActionPeriod _period;
-    private readonly double _tickSize;
-    private readonly double _trendBarSizeInPoints;
-    private readonly double _reversalBarSizeInPoints;
+    private readonly double _initialTrendBarSizeInPoints;
+    private readonly double _initialReversalBarSizeInPoints;
 
     private IBar _barInProgress;
+    private double _trendBarSizeInPoints;
+    private double _reversalBarSizeInPoints;
     private double _currentBarMaxHigh;
     private double _currentBarMinLow;
     private double _nextOpenUp;
@@ -28,9 +30,8 @@ namespace FFT.Market.BarBuilders
       : base(barsInfo)
     {
       _period = (barsInfo.Period as PriceActionPeriod) ?? throw new ArgumentException("period");
-      _tickSize = barsInfo.Instrument.MinPriceIncrement;
-      _trendBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(_period.TrendBarSizeInTicks);
-      _reversalBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(_period.ReversalBarSizeInTicks);
+      _initialTrendBarSizeInPoints = _trendBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(_period.TrendBarSizeInTicks);
+      _initialReversalBarSizeInPoints = _reversalBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(_period.ReversalBarSizeInTicks);
     }
 
     protected override void BarBuilderOnTick(Tick tick)
@@ -38,7 +39,8 @@ namespace FFT.Market.BarBuilders
       if (_barInProgress is null || SessionIterator.IsFirstTickOfSession)
       {
         // It's important to reset ALL calculation variables on a new session,
-        // to prevent data sync issues when bars series are built from different start dates.
+        // to prevent data sync issues when bars series are built from different
+        // start dates.
         _trend = Direction.Up;
         StartNewBar(tick, tick.Price);
       }
@@ -78,6 +80,47 @@ namespace FFT.Market.BarBuilders
 
     private void StartNewBar(Tick tick, double openPrice)
     {
+      if (_period.AutoAdjustSize && Bars.Count >= 3)
+      {
+        var increaseBarSize =
+          _trendBarSizeInPoints <= _initialTrendBarSizeInPoints &&
+          ((Bars[^1].IsUp && Bars[^2].IsDown && Bars[^3].IsUp) || (Bars[^1].IsDown && Bars[^2].IsUp && Bars[^3].IsDown));
+
+        if (increaseBarSize)
+        {
+          _trendBarSizeInPoints = BarsInfo.Instrument.RoundPrice(_trendBarSizeInPoints * 1.5);
+          _reversalBarSizeInPoints = BarsInfo.Instrument.RoundPrice(_reversalBarSizeInPoints * 1.5);
+        }
+        else
+        {
+          var decreaseBarSize =
+            _trendBarSizeInPoints >= _initialTrendBarSizeInPoints &&
+            Bars[^1].TimeStamp.Subtract(Bars[^2].TimeStamp).TotalMinutes > 1;
+
+          if (decreaseBarSize)
+          {
+            _trendBarSizeInPoints = BarsInfo.Instrument.RoundPrice(_trendBarSizeInPoints / 1.5);
+            _reversalBarSizeInPoints = BarsInfo.Instrument.RoundPrice(_reversalBarSizeInPoints / 1.5);
+          }
+        }
+      }
+
+      if (_trend.IsUp)
+      {
+        _currentBarMaxHigh = BarsInfo.Instrument.RoundPrice(openPrice + _trendBarSizeInPoints);
+        _currentBarMinLow = BarsInfo.Instrument.RoundPrice(openPrice - _reversalBarSizeInPoints);
+      }
+      else
+      {
+        _currentBarMaxHigh = BarsInfo.Instrument.RoundPrice(openPrice + _reversalBarSizeInPoints);
+        _currentBarMinLow = BarsInfo.Instrument.RoundPrice(openPrice - _trendBarSizeInPoints);
+      }
+
+      _nextOpenUp = BarsInfo.Instrument.AddIncrements(_currentBarMaxHigh, 1);
+      _nextOpenDown = BarsInfo.Instrument.AddIncrements(_currentBarMinLow, -1);
+      _nextBarMaxHigh = BarsInfo.Instrument.RoundPrice(_nextOpenUp + _trendBarSizeInPoints);
+      _nextBarMinLow = BarsInfo.Instrument.RoundPrice(_nextOpenDown - _trendBarSizeInPoints);
+
       _barInProgress = new Bar();
       _barInProgress.Open = openPrice;
       _barInProgress.High = Max(openPrice, tick.Price);
@@ -85,7 +128,6 @@ namespace FFT.Market.BarBuilders
       _barInProgress.Close = tick.Price;
       _barInProgress.Volume = tick.Volume;
       _barInProgress.TimeStamp = tick.TimeStamp;
-      SetCalculationVariables(openPrice);
       Bars.AddNewBar(_barInProgress);
     }
 
@@ -97,25 +139,6 @@ namespace FFT.Market.BarBuilders
       _barInProgress.Volume += tick.Volume;
       _barInProgress.TimeStamp = tick.TimeStamp;
       _barInProgress.TickCount++;
-    }
-
-    private void SetCalculationVariables(double currentBarOpenPrice)
-    {
-      if (_trend.IsUp)
-      {
-        _currentBarMaxHigh = (currentBarOpenPrice + _trendBarSizeInPoints).RoundToIncrement(_tickSize);
-        _currentBarMinLow = (currentBarOpenPrice - _reversalBarSizeInPoints).RoundToIncrement(_tickSize);
-      }
-      else
-      {
-        _currentBarMaxHigh = (currentBarOpenPrice + _reversalBarSizeInPoints).RoundToIncrement(_tickSize);
-        _currentBarMinLow = (currentBarOpenPrice - _trendBarSizeInPoints).RoundToIncrement(_tickSize);
-      }
-
-      _nextOpenUp = _currentBarMaxHigh.AddIncrements(_tickSize, 1);
-      _nextOpenDown = _currentBarMinLow.AddIncrements(_tickSize, -1);
-      _nextBarMaxHigh = (_nextOpenUp + _trendBarSizeInPoints).RoundToIncrement(_tickSize);
-      _nextBarMinLow = (_nextOpenDown - _trendBarSizeInPoints).RoundToIncrement(_tickSize);
     }
 
     private void CloseBarAtMaxHigh()

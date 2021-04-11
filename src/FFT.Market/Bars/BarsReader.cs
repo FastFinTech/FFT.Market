@@ -57,7 +57,7 @@ namespace FFT.Market.Bars
       if (lastIndex >= 0 && lastIndex > CurrentBarIndex)
       {
         CurrentBarIndex = lastIndex;
-        CurrentBar = _bars.GetBar(lastIndex);
+        CurrentBar = _bars[lastIndex];
         return true;
       }
 
@@ -75,7 +75,7 @@ namespace FFT.Market.Bars
       if (lastIndex >= 0 && lastIndex > CurrentBarIndex)
       {
         CurrentBarIndex++;
-        CurrentBar = _bars.GetBar(CurrentBarIndex);
+        CurrentBar = _bars[CurrentBarIndex];
         return true;
       }
 
@@ -99,7 +99,7 @@ namespace FFT.Market.Bars
         while (CurrentBarIndex < lastIndex)
         {
           CurrentBarIndex++;
-          CurrentBar = _bars.GetBar(CurrentBarIndex);
+          CurrentBar = _bars[CurrentBarIndex];
           yield return CurrentBar;
         }
       }
