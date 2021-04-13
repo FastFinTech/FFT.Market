@@ -33,14 +33,17 @@ namespace FFT.Market.ProcessingContexts
 
     private ITickStreamReader _tickReader;
 
-    public ProcessingContext(TimeStamp startTime, string? name = null)
+    public ProcessingContext(TimeStamp startTime, TimeStamp? endTime, string? name = null)
     {
       StartTime = startTime;
+      EndTime = endTime;
       State = ProcessingContextState.Initializing;
       Name = name ?? string.Empty;
     }
 
     public TimeStamp StartTime { get; }
+
+    public TimeStamp? EndTime { get; }
 
     public ProcessingContextState State { get; private set; }
 
@@ -164,7 +167,7 @@ namespace FFT.Market.ProcessingContexts
               {
                 Instrument = instrument,
                 From = StartTime,
-                Until = null,
+                Until = EndTime,
               })));
 
         State = ProcessingContextState.Loading;
