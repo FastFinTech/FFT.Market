@@ -16,7 +16,7 @@ namespace FFT.Market.Signals
   {
     private static readonly object _sync = new();
 
-    private static volatile Dictionary<int, CompiledActionInfo> _cachedMembers = new();
+    private static readonly Dictionary<int, CompiledActionInfo> _cachedMembers = new();
 
     internal static void Invoke(this object target, string methodName, object arg)
     {
@@ -29,7 +29,7 @@ namespace FFT.Market.Signals
         {
           if (!_cachedMembers.TryGetValue(hash, out method))
           {
-            var methodInfo = GetMethodInfo(targetType, methodName, argType);
+            var methodInfo = targetType.GetMethodInfo(methodName, argType);
             if (methodInfo is null)
               throw new Exception($"Unable to find method name '{methodName}' with arg type '{argType}' on '{targetType}'.");
             method = new CompiledActionInfo(targetType, methodInfo);
@@ -50,7 +50,7 @@ namespace FFT.Market.Signals
       return hash.ToHashCode();
     }
 
-    private static MethodInfo? GetMethodInfo(Type type, string methodName, Type argType)
+    private static MethodInfo? GetMethodInfo(this Type? type, string methodName, Type argType)
     {
       if (type is null)
         return null;
@@ -64,10 +64,7 @@ namespace FFT.Market.Signals
         }
       }
 
-      if (type.BaseType is null)
-        return null;
-
-      return GetMethodInfo(type.BaseType, methodName, argType);
+      return type.BaseType.GetMethodInfo(methodName, argType);
     }
   }
 }
