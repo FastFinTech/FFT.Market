@@ -27,8 +27,8 @@ namespace FFT.Market.Engines.WavePattern
     private int _barIndex;
     private int _previousBarIndex = -1;
     private double _previousTickPrice = -1;
-    private WavePatternFlags _flags;
-    private WavePatternFlags _reversalFlags;
+    private uint _flags;
+    private uint _reversalFlags;
 
     private WavePatternEngine(ProcessingContext processingContext, WavePatternEngineSettings settings, BarsInfo barsInfo)
         : base(processingContext, settings)
@@ -49,6 +49,8 @@ namespace FFT.Market.Engines.WavePattern
     public IWave LastCompletedApex => _lastCompletedApex;
     public IWave CurrentTrendApex => _trendApex;
     public IWave CurrentReversalApex => _reversalApex;
+    public uint Flags => _flags;
+    public uint ReversalFlags => _reversalFlags;
 
     public double CurrentPowerlineValue
       => _lastCompletedApex is null
@@ -106,6 +108,8 @@ namespace FFT.Market.Engines.WavePattern
 
     public override void OnTick(Tick tick)
     {
+      _flags = 0;
+
       if (tick.Instrument != _bars.BarsInfo.Instrument)
         return;
 
@@ -144,13 +148,13 @@ namespace FFT.Market.Engines.WavePattern
 
       // if the trend apex completed successfully, then we need to setup a new
       // trend apex using the "continue trend" method
-      if (_flags.HasFlag(WavePatternFlags.FormedX))
+      if (_flags.IsAnyFlagSet(WavePatternFlags.FormedX))
       {
         ContinueTrend();
         XTriggered?.Invoke(this);
       }
 
-      if (_flags.HasFlag(WavePatternFlags.FormedE))
+      if (_flags.IsAnyFlagSet(WavePatternFlags.FormedE))
       {
         ETriggered?.Invoke(this);
       }
@@ -173,7 +177,7 @@ namespace FFT.Market.Engines.WavePattern
         _reversalFlags = _reversalApex.Process(_barIndex);
 
         // did the reversal apex complete itself?
-        if (_reversalFlags.HasFlag(WavePatternFlags.FormedX))
+        if (_reversalFlags.IsAnyFlagSet(WavePatternFlags.FormedX))
         {
           // If the reversal apex satisfies the conditions to signal a reversal,
           // we'll perform the reversal
@@ -296,11 +300,11 @@ namespace FFT.Market.Engines.WavePattern
       _apexList = _apexList.Add(_reversalApex);
 
       // setup the reversal event flags
-      _flags |= _reversalApex.Direction.IsUp ? WavePatternFlags.SwitchedDirectionUp : WavePatternFlags.SwitchedDirectionDown;
+      _flags.SetFlags(_reversalApex.Direction.IsUp ? WavePatternFlags.SwitchedDirectionUp : WavePatternFlags.SwitchedDirectionDown);
 
       // as well as the "FormedX" flag (since the reversal apex has just become
       // an official apex, included in the system and it has just formed an X
-      _flags |= WavePatternFlags.FormedX;
+      _flags.SetFlags(WavePatternFlags.FormedX);
 
       // since the reversal apex has completed, we need to setup a new "in
       // progress" apex in the direction of the new trend. This method call also
@@ -329,7 +333,7 @@ namespace FFT.Market.Engines.WavePattern
       _apexList = _apexList.Add(_trendApex);
 
       // and finally make sure the appropriate flags are set
-      _flags |= WavePatternFlags.NewA;
+      _flags.SetFlags(WavePatternFlags.NewA);
     }
 
     /// <summary>

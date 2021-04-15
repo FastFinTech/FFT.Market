@@ -20,7 +20,7 @@ namespace FFT.Market.Engines.WavePattern
 
     private int _barIndex;
     private int _barIndexOfPreviousTick;
-    private WavePatternFlags _flags;
+    private uint _flags;
 
     public WaveLogic(Direction direction, IBars bars, int barIndex, double eDistanceInPoints, double xDistanceInPoints)
     {
@@ -56,9 +56,9 @@ namespace FFT.Market.Engines.WavePattern
     private double CurrentLow => _bars.GetLow(_barIndex);
     private double PreviousLow => _bars.GetLow(_barIndex - 1);
 
-    public WavePatternFlags Process(int barIndex)
+    public uint Process(int barIndex)
     {
-      this._barIndex = barIndex;
+      _barIndex = barIndex;
 
       _flags = 0;
 
@@ -172,7 +172,7 @@ namespace FFT.Market.Engines.WavePattern
         if (CurrentHigh >= A.Value)
         {
           A = new IndexAndValue(_barIndex, CurrentHigh);
-          _flags |= WavePatternFlags.ShiftedA;
+          _flags.SetFlags(WavePatternFlags.ShiftedA);
 
           MaxLow = double.MinValue;
           MinHigh = double.MaxValue;
@@ -187,7 +187,7 @@ namespace FFT.Market.Engines.WavePattern
         if (CurrentLow <= A.Value)
         {
           A = new IndexAndValue(_barIndex, CurrentLow);
-          _flags |= WavePatternFlags.ShiftedA;
+          _flags.SetFlags(WavePatternFlags.ShiftedA);
 
           MaxLow = double.MinValue;
           MinHigh = double.MaxValue;
@@ -224,7 +224,7 @@ namespace FFT.Market.Engines.WavePattern
             // set the value of the P at the low of the current bar
             P = new IndexAndValue(_barIndex - 1, PreviousLow);
             State = WaveStates.FormedP;
-            _flags |= WavePatternFlags.FormedP;
+            _flags.SetFlags(WavePatternFlags.FormedP);
 
             // indicate that a P was formed
             return true;
@@ -237,7 +237,7 @@ namespace FFT.Market.Engines.WavePattern
             {
               P = new IndexAndValue(A.Index, aLow);
               State = WaveStates.FormedP;
-              _flags |= WavePatternFlags.FormedP;
+              _flags.SetFlags(WavePatternFlags.FormedP);
 
               // indicate that a P was formed
               return true;
@@ -252,7 +252,7 @@ namespace FFT.Market.Engines.WavePattern
             // set the value of the P at the high of the current bar
             P = new IndexAndValue(_barIndex - 1, PreviousHigh);
             State = WaveStates.FormedP;
-            _flags |= WavePatternFlags.FormedP;
+            _flags.SetFlags(WavePatternFlags.FormedP);
 
             // indicate that a P was formed
             return true;
@@ -265,7 +265,7 @@ namespace FFT.Market.Engines.WavePattern
             {
               P = new IndexAndValue(A.Index, aLow);
               State = WaveStates.FormedP;
-              _flags |= WavePatternFlags.FormedP;
+              _flags.SetFlags(WavePatternFlags.FormedP);
 
               // indicate that a P was formed
               return true;
@@ -291,7 +291,7 @@ namespace FFT.Market.Engines.WavePattern
         {
           // set the p value at the low of the current bar
           P = new IndexAndValue(_barIndex, CurrentLow);
-          _flags |= WavePatternFlags.ShiftedP;
+          _flags.SetFlags(WavePatternFlags.ShiftedP);
 
           // indicate that the P was shifted
           return true;
@@ -304,7 +304,7 @@ namespace FFT.Market.Engines.WavePattern
         {
           // set the p value at the high of the current bar
           P = new IndexAndValue(_barIndex, CurrentHigh);
-          _flags |= WavePatternFlags.ShiftedP;
+          _flags.SetFlags(WavePatternFlags.ShiftedP);
 
           // indicate that the P was shifted
           return true;
@@ -328,7 +328,7 @@ namespace FFT.Market.Engines.WavePattern
         {
           // set the E value at the E trigger value
           E = new IndexAndValue(_barIndex, ETriggerValue.Value);
-          _flags |= WavePatternFlags.FormedE;
+          _flags.SetFlags(WavePatternFlags.FormedE);
           State = WaveStates.FormedE;
 
           // indicate that an E was formed
@@ -342,7 +342,7 @@ namespace FFT.Market.Engines.WavePattern
         {
           // set the E value at the E trigger value
           E = new IndexAndValue(_barIndex, ETriggerValue.Value);
-          _flags |= WavePatternFlags.FormedE;
+          _flags.SetFlags(WavePatternFlags.FormedE);
           State = WaveStates.FormedE;
 
           // indicate that an E was formed
@@ -371,8 +371,8 @@ namespace FFT.Market.Engines.WavePattern
 
           P = new IndexAndValue(_barIndex, CurrentLow);
           E = null!;
-          _flags |= WavePatternFlags.FailedE;
-          _flags |= WavePatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
+          _flags.SetFlags(WavePatternFlags.FailedE);
+          _flags.SetFlags(WavePatternFlags.ShiftedP); // note that we are also shifting the P when we fail the E
           State = WaveStates.FormedP;
 
           // indicate that the E failed
@@ -390,8 +390,8 @@ namespace FFT.Market.Engines.WavePattern
 
           P = new IndexAndValue(_barIndex, CurrentHigh);
           E = null!;
-          _flags |= WavePatternFlags.FailedE;
-          _flags |= WavePatternFlags.ShiftedP; // note that we are also shifting the P when we fail the E
+          _flags.SetFlags(WavePatternFlags.FailedE);
+          _flags.SetFlags(WavePatternFlags.ShiftedP); // note that we are also shifting the P when we fail the E
           State = WaveStates.FormedP;
 
           // indicate that the E failed
@@ -416,7 +416,7 @@ namespace FFT.Market.Engines.WavePattern
         {
           // set the value of the X at the X trigger value, not necessarily at the high of the current bar
           X = new IndexAndValue(_barIndex, XTriggerValue.Value);
-          _flags |= WavePatternFlags.FormedX;
+          _flags.SetFlags(WavePatternFlags.FormedX);
           State = WaveStates.FormedX;
 
           // indicate that an X was formed
@@ -430,7 +430,7 @@ namespace FFT.Market.Engines.WavePattern
         {
           // set the value of the X at the X trigger value, not necessarily at the low of the current bar
           X = new IndexAndValue(_barIndex, XTriggerValue.Value);
-          _flags |= WavePatternFlags.FormedX;
+          _flags.SetFlags(WavePatternFlags.FormedX);
           State = WaveStates.FormedX;
 
           // indicate that an X was formed
@@ -447,7 +447,7 @@ namespace FFT.Market.Engines.WavePattern
       ETriggerValue = _bars.BarsInfo.Instrument.RoundPrice(Direction.IsUp
           ? _bars.GetHigh(P!.Index) + _eDistanceInPoints
           : _bars.GetLow(P!.Index) - _eDistanceInPoints);
-      _flags |= WavePatternFlags.SetOrAdjustedETriggervalue;
+      _flags.SetFlags(WavePatternFlags.SetOrAdjustedETriggervalue);
     }
 
     private void SetXTriggerValue()
@@ -470,19 +470,19 @@ namespace FFT.Market.Engines.WavePattern
           if (newValue < ETriggerValue!.Value)
           {
             ETriggerValue = newValue;
-            _flags |= WavePatternFlags.SetOrAdjustedETriggervalue;
+            _flags.SetFlags(WavePatternFlags.SetOrAdjustedETriggervalue);
             return true;
           }
         }
         else
         {
-          // does the completed bar have a higher low than the P bar? 
+          // does the completed bar have a higher low than the P bar?
           // If so, we can bring the ETriggerValue up a bit.
           var newValue = _bars.BarsInfo.Instrument.RoundPrice(PreviousLow - _eDistanceInPoints);
           if (newValue > ETriggerValue!.Value)
           {
             ETriggerValue = newValue;
-            _flags |= WavePatternFlags.SetOrAdjustedETriggervalue;
+            _flags.SetFlags(WavePatternFlags.SetOrAdjustedETriggervalue);
             return true;
           }
         }
