@@ -6,11 +6,12 @@ namespace FFT.Market.Signals
   using System;
   using FFT.TimeStamps;
 
-  public sealed class SignalTargetFilled : IEvent
+  public sealed class FillExit : ICommand
   {
     public Guid AggregateId { get; init; }
-    public long Version { get; init; }
+    public long ExpectedVersion { get; init; }
     public TimeStamp At { get; init; }
     public decimal Price { get; init; }
+    public string Reason { get; init; }
   }
 }

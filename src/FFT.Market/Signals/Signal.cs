@@ -152,7 +152,7 @@ namespace FFT.Market.Signals
         AggregateId = Id,
         At = TimeStamp.Now,
         Version = Version + 1,
-        FillPrice = command.FillPrice,
+        FillPrice = command.Price,
       });
     }
 
@@ -160,6 +160,9 @@ namespace FFT.Market.Signals
     {
       if (Version == 0)
         throw new InvalidOperationException("Command cannot be executed on a signal that has not been created.");
+
+      if (Entry is null)
+        throw new Exception("Cannot set stop loss before setting the entry.");
 
       if (ExitFill is not null)
         throw new InvalidOperationException("Cannot set stop loss after the exit has been filled.");
@@ -204,6 +207,9 @@ namespace FFT.Market.Signals
       if (Version == 0)
         throw new InvalidOperationException("Command cannot be executed on a signal that has not been created.");
 
+      if (Entry is null)
+        throw new Exception("Cannot set target before setting the entry.");
+
       if (ExitFill is not null)
         throw new InvalidOperationException("Cannot set a target after the exit has filled.");
 
@@ -242,13 +248,10 @@ namespace FFT.Market.Signals
       });
     }
 
-    private void Handle(FillTarget command)
+    private void Handle(FillExit command)
     {
       if (Version == 0)
         throw new InvalidOperationException("Command cannot be executed on a signal that has not been created.");
-
-      if (Target is null)
-        throw new InvalidOperationException("Cannot fill a target that does not exist.");
 
       if (EntryFill is null)
         throw new InvalidOperationException("Cannot fill the exit before the entry.");
@@ -256,12 +259,13 @@ namespace FFT.Market.Signals
       if (ExitFill is not null)
         throw new InvalidOperationException("Cannot fill the exit more than once.");
 
-      Apply(new SignalTargetFilled
+      Apply(new SignalExitFilled
       {
         AggregateId = Id,
         At = TimeStamp.Now,
         Version = Version + 1,
         Price = command.Price,
+        Reason = command.Reason,
       });
     }
 
@@ -357,12 +361,13 @@ namespace FFT.Market.Signals
       Target = null;
     }
 
-    private void On(SignalTargetFilled @event)
+    private void On(SignalExitFilled @event)
     {
       ExitFill = new SignalFill
       {
         At = @event.At,
         Price = @event.Price,
+        Reason = @event.Reason,
       };
     }
   }

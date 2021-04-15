@@ -9,5 +9,6 @@ namespace FFT.Market.Signals
   {
     public TimeStamp At { get; init; }
     public decimal Price { get; init; }
+    public string Reason { get; init; }
   }
 }
