@@ -6,7 +6,7 @@ namespace FFT.Market
   using System;
   using System.Text;
 
-  internal static class ExceptionExtensions
+  public static class ExceptionExtensions
   {
     public static string GetUnwoundMessage(this Exception x, string delimiter = " ==> ")
     {

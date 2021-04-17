@@ -5,7 +5,10 @@ namespace FFT.Market
 {
   using System;
 
-  internal static class ExceptionHelpers
+  /// <summary>
+  /// Contains helpful extension methods for throwing exceptions.
+  /// </summary>
+  public static class ExceptionHelpers
   {
     /// <summary>
     /// Creates a well formatted <see cref="NotImplementedException"/> explaining that the given value
@@ -20,7 +23,8 @@ namespace FFT.Market
     /// }
     /// </code>
     /// </summary>
-    public static NotImplementedException UnknownValueException<T>(this T value) where T : Enum
+    public static NotImplementedException UnknownValueException<T>(this T value)
+      where T : Enum
     {
       return new NotImplementedException($"Unknown '{typeof(T).Name}' value: '{value}'.");
     }
