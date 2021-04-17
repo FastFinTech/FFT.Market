@@ -16,9 +16,9 @@ namespace FFT.Market.ProcessingContexts
   using FFT.Market.Engines;
   using FFT.Market.Providers;
   using FFT.Market.Providers.Ticks;
+  using FFT.Market.Services;
   using FFT.Market.TickStreams;
   using FFT.TimeStamps;
-  using static FFT.Market.Services.ServiceProvider;
 
   public sealed class ProcessingContext : DisposeBase, IHaveDependencies, IHaveReadyTask, IHaveErrorTask
   {
@@ -30,11 +30,15 @@ namespace FFT.Market.ProcessingContexts
     private readonly List<EngineBase> _engines = new();
     private readonly List<IProvider> _providers = new();
     private readonly List<ITickProvider> _tickProviders = new();
+    private readonly ITickProviderFactory _tickProviderFactory;
+    private readonly ITradingPlatformTime _tradingPlatformTime;
 
     private ITickStreamReader _tickReader;
 
-    public ProcessingContext(TimeStamp startTime, TimeStamp? endTime, string? name = null)
+    public ProcessingContext(ITickProviderFactory tickProviderFactory, ITradingPlatformTime tradingPlatformTime, TimeStamp startTime, TimeStamp? endTime, string? name = null)
     {
+      _tickProviderFactory = tickProviderFactory;
+      _tradingPlatformTime = tradingPlatformTime;
       StartTime = startTime;
       EndTime = endTime;
       State = ProcessingContextState.Initializing;
@@ -154,7 +158,7 @@ namespace FFT.Market.ProcessingContexts
         {
           var instrumentNames = string.Join(", ", instruments.Select(x => x.Name).Distinct());
           var processFromDate = StartTime.GetDate(); // rough, since it's just a utc date irrespective of timezone of actual processing start.
-          var daysAgo = TradingPlatformTime.Now.GetDate().GetDaysSince(processFromDate);
+          var daysAgo = _tradingPlatformTime.Now.GetDate().GetDaysSince(processFromDate);
           Name = $"Processing Context {instrumentNames} from {processFromDate}, {daysAgo} days ago";
         }
 
@@ -162,7 +166,7 @@ namespace FFT.Market.ProcessingContexts
 
         _tickProviders.AddRange(
           instruments.Select(
-            instrument => TickProviderFactory.GetTickProvider(
+            instrument => _tickProviderFactory.GetTickProvider(
               new TickProviderInfo
               {
                 Instrument = instrument,
