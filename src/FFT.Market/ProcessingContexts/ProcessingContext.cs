@@ -19,6 +19,7 @@ namespace FFT.Market.ProcessingContexts
   using FFT.Market.Services;
   using FFT.Market.TickStreams;
   using FFT.TimeStamps;
+  using Nito.Disposables;
 
   public sealed class ProcessingContext : DisposeBase, IHaveDependencies, IHaveReadyTask, IHaveErrorTask
   {
@@ -174,13 +175,20 @@ namespace FFT.Market.ProcessingContexts
                 Until = EndTime,
               })));
 
+        // register usage of the providers so that they can be returned
+        // when we are finished them, and so they are not disposed when someone
+        // else finishes with them!
+        var providerUsageTokens = _providers.Select(p => p.GetUserCountToken());
+        var tickProviderUsageTokens = _tickProviders.Select(p => p.GetUserCountToken());
+        using var disposables = new CollectionDisposable(providerUsageTokens.Concat(tickProviderUsageTokens));
+
         State = ProcessingContextState.Loading;
 
-        using var waitSource = new CancellationTokenSource(TimeSpan.FromMinutes(30));
-        using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(DisposedToken, waitSource.Token);
+        using var maxWait = new CancellationTokenSource(TimeSpan.FromMinutes(30));
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(DisposedToken, maxWait.Token);
         var allProviders = _providers.ToList();
         allProviders.AddRange(_tickProviders);
-        await allProviders.WaitForReadyAsync(linkedSource.Token);
+        await allProviders.WaitForReadyAsync(linked.Token);
 
         // Combine each of the tick streams into a single reader.
         _tickReader = new CombinedTickStreamReader(_tickProviders.Select(p => p.CreateReader()).ToArray());
