@@ -10,7 +10,7 @@ namespace FFT.Market.UsageTracking
   /// Use an instance of this class within any of your classes when they need to
   /// implement the <see cref="IHaveUserCountToken"/> interface.
   /// </summary>
-  public sealed class UserTokenMonitor : IHaveUserCountToken
+  public sealed class UserTokenMonitor
   {
     private readonly object _sync = new();
 
@@ -27,7 +27,10 @@ namespace FFT.Market.UsageTracking
     /// </summary>
     public event Action UserCountZero;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets a user count token that your <see cref="IHaveUserCountToken"/>
+    /// implementation can return to users.
+    /// </summary>
     public IDisposable GetUserCountToken()
     {
       lock (_sync)

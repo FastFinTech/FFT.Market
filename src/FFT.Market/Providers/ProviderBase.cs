@@ -27,25 +27,43 @@ namespace FFT.Market.Providers
 
     public ProviderBase()
     {
-      _userTokenMonitor.UserCountZero += () => Dispose(new Exception("User count is zero."));
+      _userTokenMonitor.UserCountZero += () =>
+      {
+        if (ShouldDisposeWhenAllUsersAreFinished)
+        {
+          Dispose(new Exception("User count is zero."));
+        }
+      };
     }
 
+    /// <inheritdoc />
     public string Name { get; protected set; }
 
+    /// <inheritdoc />
     public ProviderStates State { get; private set; } = ProviderStates.Loading;
 
+    /// <inheritdoc />
     public Task ReadyTask => _readyTCS.Task;
 
+    /// <inheritdoc />
     public Task ErrorTask => _errorTCS.Task;
 
+    /// <inheritdoc />
     public Exception? Exception => DisposalReason;
 
+    /// <inheritdoc />
+    public bool ShouldDisposeWhenAllUsersAreFinished { get; protected set; } = true;
+
+    /// <inheritdoc />
     public abstract void Start();
 
+    /// <inheritdoc />
     public IDisposable GetUserCountToken() => _userTokenMonitor.GetUserCountToken();
 
+    /// <inheritdoc />
     public abstract IEnumerable<object> GetDependencies();
 
+    /// <inheritdoc />
     public abstract ProviderStatus GetStatus();
 
     protected void OnReady()
@@ -73,6 +91,7 @@ namespace FFT.Market.Providers
       OnDisposed();
     }
 
+#pragma warning disable SA1502 // Element should not be on a single line
     protected virtual void OnDisposing() { }
     protected virtual void OnDisposed() { }
   }
