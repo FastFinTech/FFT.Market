@@ -74,6 +74,15 @@ namespace FFT.Market
       => (double)(numIncrements * (decimal)increment);
 
     /// <summary>
+    /// Converts the given <paramref name="numIncrements"/> and <paramref
+    /// name="increment"/> to a <c>double</c> value representing the actual
+    /// value of the given number of increments.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double ToPoints(this uint numIncrements, double increment)
+      => (double)(numIncrements * (decimal)increment);
+
+    /// <summary>
     /// Performs a comparison of the two values, returning "0" (equal) if the
     /// two values differ by less than <see cref="double.Epsilon"/>. Otherwise,
     /// <c>1</c> is returned if <paramref name="value"/> is greater. <c>-1</c>

@@ -16,6 +16,7 @@ namespace FFT.Market.TickStreams
   public sealed class ShortTickStream : ITickStream, IDisposable
   {
     private readonly double _tickSize;
+    private readonly double _minQtyIncrement;
     private readonly Sequence<byte> _sequence;
 
     private Tick? _previousTick;
@@ -23,6 +24,7 @@ namespace FFT.Market.TickStreams
     public ShortTickStream(IInstrument instrument)
     {
       _tickSize = instrument.MinPriceIncrement;
+      _minQtyIncrement = instrument.MinQtyIncrement;
       _sequence = new Sequence<byte>(ArrayPool<byte>.Shared);
       Instrument = instrument;
     }
@@ -65,7 +67,7 @@ namespace FFT.Market.TickStreams
         writer.Write(tick.Price);
         writer.Write(tick.Bid);
         writer.Write(tick.Ask);
-        writer.Write((ulong)tick.Volume);
+        writer.Write((uint)tick.Volume.ToIncrements(_minQtyIncrement));
         writer.Write((ulong)tick.TimeStamp.TicksUtc);
       }
       else
@@ -73,7 +75,7 @@ namespace FFT.Market.TickStreams
         writer.Write((tick.Price - _previousTick.Price).ToIncrements(_tickSize));
         writer.Write((tick.Bid - _previousTick.Bid).ToIncrements(_tickSize));
         writer.Write((tick.Ask - _previousTick.Ask).ToIncrements(_tickSize));
-        writer.Write((ulong)tick.Volume);
+        writer.Write((uint)tick.Volume.ToIncrements(_minQtyIncrement));
         writer.Write((ulong)(tick.TimeStamp.TicksUtc - _previousTick.TimeStamp.TicksUtc));
       }
 
@@ -122,6 +124,7 @@ namespace FFT.Market.TickStreams
     {
       private readonly ShortTickStream _parent;
       private readonly double _tickSize;
+      private readonly decimal _minQtyIncrement;
 
       private long _position = 0;
       private int _currentIndex = -1;
@@ -133,6 +136,7 @@ namespace FFT.Market.TickStreams
       {
         _parent = parent;
         _tickSize = _parent._tickSize;
+        _minQtyIncrement = (decimal)_parent.Instrument.MinQtyIncrement;
         Instrument = _parent.Instrument;
       }
 
@@ -177,7 +181,7 @@ namespace FFT.Market.TickStreams
           var price = reader.ReadDouble();
           var bid = reader.ReadDouble();
           var ask = reader.ReadDouble();
-          var volume = (double)reader.ReadUInt64();
+          var volume = (double)(reader.ReadUInt32() * _minQtyIncrement);
           var timeStamp = new TimeStamp((long)reader.ReadUInt64());
 
           _position += reader.Consumed;
@@ -196,7 +200,7 @@ namespace FFT.Market.TickStreams
           var price = _previousTick.Price.AddIncrements(_tickSize, reader.ReadInt32());
           var bid = _previousTick.Bid.AddIncrements(_tickSize, reader.ReadInt32());
           var ask = _previousTick.Ask.AddIncrements(_tickSize, reader.ReadInt32());
-          var volume = (double)reader.ReadUInt64();
+          var volume = (double)(reader.ReadUInt32() * _minQtyIncrement);
           var timeStamp = _previousTick.TimeStamp.AddTicks((long)reader.ReadUInt64());
 
           _position += reader.Consumed;
