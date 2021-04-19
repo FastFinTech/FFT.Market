@@ -47,6 +47,8 @@ namespace FFT.Market.BarBuilders
       else if (tick.Price > _currentBarMaxHigh)
       {
         CloseBarAtMaxHigh();
+        _trend = Direction.Up;
+
         if (tick.Price > _nextBarMaxHigh)
         {
           StartNewBar(tick, tick.Price);
@@ -55,12 +57,12 @@ namespace FFT.Market.BarBuilders
         {
           StartNewBar(tick, _nextOpenUp);
         }
-
-        _trend = Direction.Up;
       }
       else if (tick.Price < _currentBarMinLow)
       {
         CloseBarAtMinLow();
+        _trend = Direction.Down;
+
         if (tick.Price < _nextBarMinLow)
         {
           StartNewBar(tick, tick.Price);
@@ -69,8 +71,6 @@ namespace FFT.Market.BarBuilders
         {
           StartNewBar(tick, _nextOpenDown);
         }
-
-        _trend = Direction.Down;
       }
       else
       {
