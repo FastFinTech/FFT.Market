@@ -102,7 +102,7 @@ namespace FFT.Market.TickStreams
 
     /// <inheritdoc />
     public ITickStreamReader CreateReader()
-      => new Reader(this);
+      => new ShortTickStreamReader(this);
 
     /// <inheritdoc />
     public ITickStreamReader CreateReaderFrom(TimeStamp timeStamp)
@@ -118,7 +118,7 @@ namespace FFT.Market.TickStreams
       _sequence.Reset();
     }
 
-    private class Reader : ITickStreamReader
+    private class ShortTickStreamReader : ITickStreamReader
     {
       private readonly ShortTickStream _parent;
       private readonly double _tickSize;
@@ -126,10 +126,10 @@ namespace FFT.Market.TickStreams
       private long _position = 0;
       private int _currentIndex = -1;
       private int _peekIndex = -1;
-      private Tick _peekTick;
-      private Tick _previousTick;
+      private Tick? _peekTick;
+      private Tick? _previousTick;
 
-      public Reader(ShortTickStream parent)
+      public ShortTickStreamReader(ShortTickStream parent)
       {
         _parent = parent;
         _tickSize = _parent._tickSize;
@@ -166,8 +166,11 @@ namespace FFT.Market.TickStreams
         return Extract();
       }
 
-      private Tick Extract()
+      private Tick? Extract()
       {
+        if (BytesRemaining <= 0)
+          return null;
+
         var reader = new MessagePackReader(_parent.AsReadOnlySequence().Slice(_position));
         if (_previousTick is null)
         {
