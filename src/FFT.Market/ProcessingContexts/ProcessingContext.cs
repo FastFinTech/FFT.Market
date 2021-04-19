@@ -175,9 +175,7 @@ namespace FFT.Market.ProcessingContexts
                 Until = EndTime,
               })));
 
-        // register usage of the providers so that they can be returned
-        // when we are finished them, and so they are not disposed when someone
-        // else finishes with them!
+        // Reserve the internal providers.
         var providerUsageTokens = _providers.Select(p => p.GetUserCountToken());
         var tickProviderUsageTokens = _tickProviders.Select(p => p.GetUserCountToken());
         using var disposables = new CollectionDisposable(providerUsageTokens.Concat(tickProviderUsageTokens));
