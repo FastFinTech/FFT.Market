@@ -19,10 +19,10 @@ namespace FFT.Market.Engines.WavePattern
     private readonly double _reversalOffsetInPoints;
     private readonly Initializer _initializer;
 
-    private ImmutableList<WaveLogic> _apexList = ImmutableList<WaveLogic>.Empty;
-    private WaveLogic _trendApex;
-    private WaveLogic _reversalApex;
-    private WaveLogic _lastCompletedApex;
+    private ImmutableList<WaveLogic> _waves = ImmutableList<WaveLogic>.Empty;
+    private WaveLogic _trendWave;
+    private WaveLogic _reversalWave;
+    private WaveLogic _lastCompletedWave;
 
     private int _barIndex;
     private int _previousBarIndex = -1;
@@ -44,19 +44,19 @@ namespace FFT.Market.Engines.WavePattern
     public event Action<WavePatternEngine> XTriggered;
     public event Action<WavePatternEngine> ReversalTriggered;
 
-    public override string Name => "Apex Pattern Engine";
-    public IEnumerable<IWave> AllApexes => _apexList;
-    public IWave LastCompletedApex => _lastCompletedApex;
-    public IWave CurrentTrendApex => _trendApex;
-    public IWave CurrentReversalApex => _reversalApex;
+    public ImmutableList<IWave> Waves { get; private set; } = ImmutableList<IWave>.Empty;
+    public override string Name => "Wave Pattern Engine";
+    public IWave LastCompletedWave => _lastCompletedWave;
+    public IWave CurrentTrendWave => _trendWave;
+    public IWave CurrentReversalWave => _reversalWave;
 
     public double CurrentPowerlineValue
-      => _lastCompletedApex is null
-        ? _trendApex.P!.Value
-        : _lastCompletedApex.P!.Value;
+      => _lastCompletedWave is null
+        ? _trendWave.P!.Value
+        : _lastCompletedWave.P!.Value;
 
     public double CurrentPowerlineValuePlusReversalOffset
-      => _trendApex.Direction.IsUp
+      => _trendWave.Direction.IsUp
         ? CurrentPowerlineValue - _reversalOffsetInPoints
         : CurrentPowerlineValue + _reversalOffsetInPoints;
 
@@ -68,13 +68,13 @@ namespace FFT.Market.Engines.WavePattern
     {
       get
       {
-        if (_reversalApex is null)
+        if (_reversalWave is null)
           return null;
-        if (_reversalApex.State < WaveStates.FormedP)
+        if (_reversalWave.State < WaveStates.FormedP)
           return null;
         if (!IsReversalSignal())
           return null;
-        return _reversalApex.XTriggerValue;
+        return _reversalWave.XTriggerValue;
       }
     }
 
@@ -86,11 +86,11 @@ namespace FFT.Market.Engines.WavePattern
     {
       get
       {
-        if (_trendApex is null)
+        if (_trendWave is null)
           return null;
-        if (_trendApex.State != WaveStates.FormedP)
+        if (_trendWave.State != WaveStates.FormedP)
           return null;
-        return _trendApex.ETriggerValue;
+        return _trendWave.ETriggerValue;
       }
     }
 
@@ -127,23 +127,23 @@ namespace FFT.Market.Engines.WavePattern
 
     private void Process()
     {
-      // initialization needs to be done if the current trend apex is null
-      if (_trendApex is null)
+      // initialization needs to be done if the current trend wave is null
+      if (_trendWave is null)
       {
         if (_initializer.TryInitialize(_barIndex, out var direction))
         {
-          SetupNewTrendApex(direction);
+          SetupNewTrendWave(direction);
         }
 
         // that's all we need to do ... exit the method
         return;
       }
 
-      // lets start by updating the current trend apex
-      _flags = _trendApex.Process(_barIndex);
+      // lets start by updating the current trend wave
+      _flags = _trendWave.Process(_barIndex);
 
-      // if the trend apex completed successfully, then we need to setup a new
-      // trend apex using the "continue trend" method
+      // if the trend wave completed successfully, then we need to setup a new
+      // trend wave using the "continue trend" method
       if (_flags.HasFlag(WavePatternFlags.FormedX))
       {
         ContinueTrend();
@@ -155,27 +155,27 @@ namespace FFT.Market.Engines.WavePattern
         ETriggered?.Invoke(this);
       }
 
-      // now it's time to figure out what to do with the reversal apex half of
-      // the time there's no reversal apex actually active in the system.
-      if (_reversalApex is null)
+      // now it's time to figure out what to do with the reversal wave half of
+      // the time there's no reversal wave actually active in the system.
+      if (_reversalWave is null)
       {
-        // let's go ahead and setup a new reversal apex if one should be created
+        // let's go ahead and setup a new reversal wave if one should be created
         // now
-        if (ShouldCreateReversalApex())
+        if (ShouldCreateReversalWave())
         {
-          SetupNewReversalApex(CurrentTrendApex.Direction.Opposite);
+          SetupNewReversalWave(CurrentTrendWave.Direction.Opposite);
         }
       }
       else
       {
-        // a reversal apex is already active in the system. let's start by
+        // a reversal wave is already active in the system. let's start by
         // having it process this bar
-        _reversalFlags = _reversalApex.Process(_barIndex);
+        _reversalFlags = _reversalWave.Process(_barIndex);
 
-        // did the reversal apex complete itself?
+        // did the reversal wave complete itself?
         if (_reversalFlags.HasFlag(WavePatternFlags.FormedX))
         {
-          // If the reversal apex satisfies the conditions to signal a reversal,
+          // If the reversal wave satisfies the conditions to signal a reversal,
           // we'll perform the reversal
           if (IsReversalSignal())
           {
@@ -185,185 +185,187 @@ namespace FFT.Market.Engines.WavePattern
           }
           else
           {
-            // otherwise we need to setup a new reversal apex
-            SetupNewReversalApex(_reversalApex.Direction);
+            // otherwise we need to setup a new reversal wave
+            SetupNewReversalWave(_reversalWave.Direction);
           }
         }
         else
         {
-          // The reversal apex did not complete itself. Let's check if it needs
+          // The reversal wave did not complete itself. Let's check if it needs
           // to be cleared and do so if necessary.
-          if (ShouldClearReversalApex())
+          if (ShouldClearReversalWave())
           {
-            ClearReversalApex();
+            ClearReversalWave();
           }
         }
       }
 
       // the last thing to do is a litte bit of sugar for the UI. Just adjust
-      // the bar index to which each apex's powerline should be drawn
-      _trendApex.LastIndexOfPowerline = _barIndex;
-      if (_lastCompletedApex is not null)
-        _lastCompletedApex.LastIndexOfPowerline = _barIndex;
+      // the bar index to which each wave's powerline should be drawn
+      _trendWave.LastIndexOfPowerline = _barIndex;
+      if (_lastCompletedWave is not null)
+        _lastCompletedWave.LastIndexOfPowerline = _barIndex;
     }
 
     /// <summary>
-    /// Returns true if a reversal apex should be formed. Method assumes that a
-    /// reversal apex does not already exist.
+    /// Returns true if a reversal wave should be formed. Method assumes that a
+    /// reversal wave does not already exist.
     /// </summary>
-    private bool ShouldCreateReversalApex()
+    private bool ShouldCreateReversalWave()
     {
-      // If the current trend apex's state is still in "FormedA", then there are
-      // no bars that can possibly be used as A's for a reversal apex. There
+      // If the current trend wave's state is still in "FormedA", then there are
+      // no bars that can possibly be used as A's for a reversal wave. There
       // needs to be price movement in the opposite direction first.
-      if (_trendApex.State < WaveStates.FormedP)
+      if (_trendWave.State < WaveStates.FormedP)
         return false;
 
       // Now we wait for price to creep to the correct side of the powerline
       // http://screencast.com/t/iDsMeD1ln90s Note: When null ==
-      // LastCompletedApex, this expression ends up returning true whenever
-      // CurrentTrendApex (the very first apex of this bar series) forms a new
+      // LastCompletedWave, this expression ends up returning true whenever
+      // CurrentTrendWave (the very first wave of this bar series) forms a new
       // P, because the "CurrentPowerlineValue" property is setup to return the
-      // PValue of the CurrentTrendApex when null == LastCompletedApex.
-      return _trendApex.Direction.IsUp
+      // PValue of the CurrentTrendWave when null == LastCompletedWave.
+      return _trendWave.Direction.IsUp
           ? _bars.GetLow(_barIndex) <= CurrentPowerlineValue
           : _bars.GetHigh(_barIndex) >= CurrentPowerlineValue;
     }
 
     /// <summary>
-    /// Returns true if the reversal apex should be cleared. Method assumes that
-    /// null != CurrentReversalApex.
+    /// Returns true if the reversal wave should be cleared. Method assumes that
+    /// null != CurrentReversalWave.
     /// </summary>
-    private bool ShouldClearReversalApex()
+    private bool ShouldClearReversalWave()
     {
-      // if the reversal apex has crept onto the wrong side of the powerline
-      // then we clear it this lets us reset the reversal apex when price creeps
+      // if the reversal wave has crept onto the wrong side of the powerline
+      // then we clear it this lets us reset the reversal wave when price creeps
       // onto the correct side of the powerline
       // http://screencast.com/t/iDsMeD1ln90s
 
       // First run a little test to fix this edge case,
       // http://screencast.com/t/glHoY9NMCH which was caused by continually
-      // incorrectly clearing a valid reversal apex when the LastCompletedApex
-      // was null. Reason it happened: When LastCompletedApex is null, the
-      // CurrentPowerLineValue is set to the P of the trend apex in progress,
+      // incorrectly clearing a valid reversal wave when the LastCompletedWave
+      // was null. Reason it happened: When LastCompletedWave is null, the
+      // CurrentPowerLineValue is set to the P of the trend wave in progress,
       // which resulted in the final expression always incorrectly returning
       // true
-      if (_lastCompletedApex is null)
+      if (_lastCompletedWave is null)
         return false;
 
-      return _reversalApex.Direction.IsUp
-          ? _reversalApex.MinHigh < CurrentPowerlineValue
-          : _reversalApex.MaxLow > CurrentPowerlineValue;
+      return _reversalWave.Direction.IsUp
+          ? _reversalWave.MinHigh < CurrentPowerlineValue
+          : _reversalWave.MaxLow > CurrentPowerlineValue;
     }
 
     /// <summary>
     /// This method is called when conditions are no longer valid for a reversal
-    /// apex to exist in the system. It simply removes whatever reversal apex
-    /// exists by setting them null. The cleared reversal apexes where never
-    /// added to the allApexes list ... they simply disappear as though they
+    /// wave to exist in the system. It simply removes whatever reversal wave
+    /// exists by setting them null. The cleared reversal waves where never
+    /// added to the allWaves list ... they simply disappear as though they
     /// never existed.
     /// </summary>
-    private void ClearReversalApex()
+    private void ClearReversalWave()
     {
-      _reversalApex = null!;
+      _reversalWave = null!;
     }
 
     /// <summary>
-    /// This method is called when a trend apex completes. At this stage, a new
-    /// apex needs to be instantiated in the same direction.
+    /// This method is called when a trend wave completes. At this stage, a new
+    /// wave needs to be instantiated in the same direction.
     /// </summary>
     private void ContinueTrend()
     {
-      // the current trend apex becomes the last completed apex
-      _lastCompletedApex = _trendApex;
+      // the current trend wave becomes the last completed wave
+      _lastCompletedWave = _trendWave;
 
-      // setup a new apex trending in the same direction
-      SetupNewTrendApex(_trendApex.Direction);
+      // setup a new wave trending in the same direction
+      SetupNewTrendWave(_trendWave.Direction);
     }
 
     /// <summary>
-    /// This method is called when a reversal apex has completed and conditions
+    /// This method is called when a reversal wave has completed and conditions
     /// are correct for it to signal a reversal.
     /// </summary>
     private void Reverse()
     {
-      // set the completed reversal apex as the "last completed apex" so it can
+      // set the completed reversal wave as the "last completed wave" so it can
       // be used for the powerline value
-      _lastCompletedApex = _reversalApex;
+      _lastCompletedWave = _reversalWave;
 
-      // and add it to the allApexes list so it becomes a "system apex",
-      // displayed on charts. It now becomes the first apex of the new trend.
-      _apexList = _apexList.Add(_reversalApex);
+      // and add it to the allWaves list so it becomes a "system wave",
+      // displayed on charts. It now becomes the first wave of the new trend.
+      _waves = _waves.Add(_reversalWave);
+      Waves = Waves.Add(_reversalWave);
 
       // setup the reversal event flags
-      _flags |= _reversalApex.Direction.IsUp ? WavePatternFlags.SwitchedDirectionUp : WavePatternFlags.SwitchedDirectionDown;
+      _flags |= _reversalWave.Direction.IsUp ? WavePatternFlags.SwitchedDirectionUp : WavePatternFlags.SwitchedDirectionDown;
 
-      // as well as the "FormedX" flag (since the reversal apex has just become
-      // an official apex, included in the system and it has just formed an X
+      // as well as the "FormedX" flag (since the reversal wave has just become
+      // an official wave, included in the system and it has just formed an X
       _flags |= WavePatternFlags.FormedX;
 
-      // since the reversal apex has completed, we need to setup a new "in
-      // progress" apex in the direction of the new trend. This method call also
+      // since the reversal wave has completed, we need to setup a new "in
+      // progress" wave in the direction of the new trend. This method call also
       // sets the NewA flag.
-      SetupNewTrendApex(_reversalApex.Direction);
+      SetupNewTrendWave(_reversalWave.Direction);
 
-      // and of course, the reversal apex needs to be cleared because it has
+      // and of course, the reversal wave needs to be cleared because it has
       // completed. We'll have to wait for conditions to be right before we
-      // setup a new reversal apex.
-      ClearReversalApex();
+      // setup a new reversal wave.
+      ClearReversalWave();
     }
 
     /// <summary>
-    /// Creates a new apex in the direction of the trend. This is a utility
+    /// Creates a new wave in the direction of the trend. This is a utility
     /// method, used by the following: 1. Initialization uses it to setup the
-    /// first apex. 2. ContinueTrend() uses it to add the next apex when a trend
-    /// apex completes 3. Reverse() uses it to add the next apex when a reversal
-    /// apex completes and triggers a reversal.
+    /// first wave. 2. ContinueTrend() uses it to add the next wave when a trend
+    /// wave completes 3. Reverse() uses it to add the next wave when a reversal
+    /// wave completes and triggers a reversal.
     /// </summary>
-    private void SetupNewTrendApex(Direction direction)
+    private void SetupNewTrendWave(Direction direction)
     {
-      // create the new trend apex, saving it in the appropriate variables
-      _trendApex = new WaveLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
+      // create the new trend wave, saving it in the appropriate variables
+      _trendWave = new WaveLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
 
-      // don't forget to add it to the "_apexList" list so the UI can display it
-      _apexList = _apexList.Add(_trendApex);
+      // don't forget to add it to the "_waveList" list so the UI can display it
+      _waves = _waves.Add(_trendWave);
+      Waves = Waves.Add(_trendWave);
 
       // and finally make sure the appropriate flags are set
       _flags |= WavePatternFlags.NewA;
     }
 
     /// <summary>
-    /// Creates a new apex against the direction of the trend. This is a utility
-    /// method, used by the following: 1. When no reversal apex exists, and
-    /// conditions are right to create one 2. When a reversal apex completed but
-    /// could not trigger a trend reversal, a new reversal apex needs to be
+    /// Creates a new wave against the direction of the trend. This is a utility
+    /// method, used by the following: 1. When no reversal wave exists, and
+    /// conditions are right to create one 2. When a reversal wave completed but
+    /// could not trigger a trend reversal, a new reversal wave needs to be
     /// setup.
     /// </summary>
-    private void SetupNewReversalApex(Direction direction)
+    private void SetupNewReversalWave(Direction direction)
     {
-      // create the new reversal apex and set the variables for it.
-      _reversalApex = new WaveLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
+      // create the new reversal wave and set the variables for it.
+      _reversalWave = new WaveLogic(direction, _bars, _barIndex, _eDistanceInPoints, _xDistanceInPoints);
     }
 
     /// <summary>
-    /// This method is called when the reversal apex has just been completed.
-    /// Returns true if the just-completed reversal apex can also trigger a
+    /// This method is called when the reversal wave has just been completed.
+    /// Returns true if the just-completed reversal wave can also trigger a
     /// reversal signal.
     /// </summary>
     private bool IsReversalSignal()
     {
       // First fix this edge case, http://screencast.com/t/glHoY9NMCH which was
-      // ALSO caused by not accepting the reversal signal of the reversal apex
+      // ALSO caused by not accepting the reversal signal of the reversal wave
       // at the beginning of the chart
-      if (_lastCompletedApex is null)
+      if (_lastCompletedWave is null)
         return true;
 
-      // a reversal apex can trigger a reversal in the following situations:
+      // a reversal wave can trigger a reversal in the following situations:
       // Direction.IsUp: All bar highs from its A to X are >= powerline value
       // Direction.IsDown: All bar lows from its A to X are <= powerline value
-      return _reversalApex.Direction.IsUp
-          ? _reversalApex.MinHigh >= CurrentPowerlineValuePlusReversalOffset
-          : _reversalApex.MaxLow <= CurrentPowerlineValuePlusReversalOffset;
+      return _reversalWave.Direction.IsUp
+          ? _reversalWave.MinHigh >= CurrentPowerlineValuePlusReversalOffset
+          : _reversalWave.MaxLow <= CurrentPowerlineValuePlusReversalOffset;
     }
 
     private class Initializer

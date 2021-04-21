@@ -58,7 +58,7 @@ namespace FFT.Market.Engines.WavePattern
 
     public WavePatternFlags Process(int barIndex)
     {
-      this._barIndex = barIndex;
+      _barIndex = barIndex;
 
       _flags = 0;
 
