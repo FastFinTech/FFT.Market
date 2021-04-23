@@ -24,7 +24,7 @@ namespace FFT.Market.DependencyTracking
     {
       var items = new HashSet<object>();
       if (target is null) return items;
-      include ??= x => true;
+      include ??= static x => true;
       Recurse(target, include, items);
       return items;
 
