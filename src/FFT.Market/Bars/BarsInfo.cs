@@ -4,6 +4,7 @@
 namespace FFT.Market.Bars
 {
   using FFT.Market.BarBuilders;
+  using FFT.Market.Bars.Periods;
   using FFT.Market.Instruments;
   using FFT.Market.Sessions.TradingHoursSessions;
   using FFT.TimeStamps;

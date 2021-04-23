@@ -5,6 +5,7 @@ namespace FFT.Market.BarBuilders
 {
   using System;
   using FFT.Market.Bars;
+  using FFT.Market.Bars.Periods;
   using FFT.Market.Instruments;
   using FFT.Market.Ticks;
   using static System.Math;

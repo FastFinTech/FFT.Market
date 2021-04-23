@@ -7,6 +7,7 @@ namespace FFT.Market.Bars
   using System.Collections.Generic;
   using System.Diagnostics;
   using System.Linq;
+  using FFT.Market.Bars.Periods;
   using FFT.Market.DataSeries;
   using FFT.Market.Instruments;
   using FFT.Market.TickStreams;
