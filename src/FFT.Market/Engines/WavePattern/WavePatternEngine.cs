@@ -49,6 +49,8 @@ namespace FFT.Market.Engines.WavePattern
     public IWave LastCompletedWave => _lastCompletedWave;
     public IWave CurrentTrendWave => _trendWave;
     public IWave CurrentReversalWave => _reversalWave;
+    public uint Flags => _flags;
+    public uint ReversalFlags => _reversalFlags;
 
     public double CurrentPowerlineValue
       => _lastCompletedWave is null
@@ -107,6 +109,7 @@ namespace FFT.Market.Engines.WavePattern
     public override void OnTick(Tick tick)
     {
       _flags = 0;
+      _reversalFlags = 0;
 
       if (tick.Instrument != _bars.BarsInfo.Instrument)
         return;
@@ -146,7 +149,7 @@ namespace FFT.Market.Engines.WavePattern
 
       // if the trend wave completed successfully, then we need to setup a new
       // trend wave using the "continue trend" method
-      if (_flags.HasFlag(WavePatternFlags.FormedX))
+      if (_flags.IsAnyFlagSet(WavePatternFlags.FormedX))
       {
         ContinueTrend();
         XTriggered?.Invoke(this);
@@ -175,7 +178,7 @@ namespace FFT.Market.Engines.WavePattern
         _reversalFlags = _reversalWave.Process(_barIndex);
 
         // did the reversal wave complete itself?
-        if (_reversalFlags.HasFlag(WavePatternFlags.FormedX))
+        if (_reversalFlags.IsAnyFlagSet(WavePatternFlags.FormedX))
         {
           // If the reversal wave satisfies the conditions to signal a reversal,
           // we'll perform the reversal
@@ -299,11 +302,11 @@ namespace FFT.Market.Engines.WavePattern
       Waves = Waves.Add(_reversalWave);
 
       // setup the reversal event flags
-      _flags |= _reversalWave.Direction.IsUp ? WavePatternFlags.SwitchedDirectionUp : WavePatternFlags.SwitchedDirectionDown;
+      _flags.SetFlags(_reversalWave.Direction.IsUp ? WavePatternFlags.SwitchedDirectionUp : WavePatternFlags.SwitchedDirectionDown);
 
       // as well as the "FormedX" flag (since the reversal wave has just become
       // an official wave, included in the system and it has just formed an X
-      _flags |= WavePatternFlags.FormedX;
+      _flags.SetFlags(WavePatternFlags.FormedX);
 
       // since the reversal wave has completed, we need to setup a new "in
       // progress" wave in the direction of the new trend. This method call also
