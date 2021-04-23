@@ -58,14 +58,15 @@ namespace FFT.Market.Bars
       yield return BarsInfo.Instrument;
     }
 
-    public double GetOpen(int index) => _bars[index - NumRemoved].Open;
-    public double GetHigh(int index) => _bars[index - NumRemoved].High;
-    public double GetLow(int index) => _bars[index - NumRemoved].Low;
-    public double GetClose(int index) => _bars[index - NumRemoved].Close;
-    public double GetVolume(int index) => _bars[index - NumRemoved].Volume;
-    public int GetTickCount(int index) => _bars[index - NumRemoved].TickCount;
-    public TimeStamp GetTimeStamp(int index) => _bars[index - NumRemoved].TimeStamp;
-    public double GetValue(BarInputType inputType, int index) => _bars[index - NumRemoved].GetValue(inputType);
+    public double GetOpen(Index index) => this[index].Open;
+    public double GetHigh(Index index) => this[index].High;
+    public double GetLow(Index index) => this[index].Low;
+    public double GetClose(Index index) => this[index].Close;
+    public double GetVolume(Index index) => this[index].Volume;
+    public Index GetTickCount(Index index) => this[index].TickCount;
+    public TimeStamp GetTimeStamp(Index index) => this[index].TimeStamp;
+    public TimeStamp GetTimeStamp(int index) => this[index].TimeStamp;
+    public double GetValue(BarInputType inputType, Index index) => this[index].GetValue(inputType);
 
     public IEnumerable<double> GetValues(BarInputType inputType) => _bars.Select(b => b.GetValue(inputType));
 

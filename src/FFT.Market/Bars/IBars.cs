@@ -33,13 +33,13 @@ namespace FFT.Market.Bars
 
     // These two are included in the ITimeStampSeries interface:
     //  int Count { get; }
-    //  TimeStamp GetTimeStamp(int index);
-    double GetOpen(int index);
-    double GetHigh(int index);
-    double GetLow(int index);
-    double GetClose(int index);
-    double GetVolume(int index);
-    double GetValue(BarInputType inputType, int index);
+    TimeStamp GetTimeStamp(Index index);
+    double GetOpen(Index index);
+    double GetHigh(Index index);
+    double GetLow(Index index);
+    double GetClose(Index index);
+    double GetVolume(Index index);
+    double GetValue(BarInputType inputType, Index index);
 
     void AddNewBar(IBar bar);
     void UpdateLastBar(double open, double high, double low, double close, double volume, TimeStamp timestamp);
