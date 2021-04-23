@@ -27,8 +27,8 @@ namespace FFT.Market.Engines.WavePattern
     private int _barIndex;
     private int _previousBarIndex = -1;
     private double _previousTickPrice = -1;
-    private WavePatternFlags _flags;
-    private WavePatternFlags _reversalFlags;
+    private uint _flags;
+    private uint _reversalFlags;
 
     private WavePatternEngine(ProcessingContext processingContext, WavePatternEngineSettings settings, BarsInfo barsInfo)
         : base(processingContext, settings)
@@ -106,6 +106,8 @@ namespace FFT.Market.Engines.WavePattern
 
     public override void OnTick(Tick tick)
     {
+      _flags = 0;
+
       if (tick.Instrument != _bars.BarsInfo.Instrument)
         return;
 
@@ -150,7 +152,7 @@ namespace FFT.Market.Engines.WavePattern
         XTriggered?.Invoke(this);
       }
 
-      if (_flags.HasFlag(WavePatternFlags.FormedE))
+      if (_flags.IsAnyFlagSet(WavePatternFlags.FormedE))
       {
         ETriggered?.Invoke(this);
       }
@@ -331,7 +333,7 @@ namespace FFT.Market.Engines.WavePattern
       Waves = Waves.Add(_trendWave);
 
       // and finally make sure the appropriate flags are set
-      _flags |= WavePatternFlags.NewA;
+      _flags.SetFlags(WavePatternFlags.NewA);
     }
 
     /// <summary>
