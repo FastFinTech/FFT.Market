@@ -3,13 +3,16 @@
 
 namespace FFT.Market.Signals
 {
+  using System;
   using FFT.TimeStamps;
 
-  public sealed record SignalEntryData
+  public sealed class EntrySet : IEvent
   {
+    public Guid AggregateId { get; init; }
+    public long Version { get; init; }
     public TimeStamp At { get; init; }
     public Direction Direction { get; init; }
-    public SignalEntryType EntryType { get; init; }
+    public EntryType EntryType { get; init; }
     public decimal Price { get; init; }
     public string Tag { get; init; }
   }

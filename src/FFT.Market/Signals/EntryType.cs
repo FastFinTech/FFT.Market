@@ -3,12 +3,10 @@
 
 namespace FFT.Market.Signals
 {
-  using FFT.TimeStamps;
-
-  public sealed record SignalTargetData
+  public enum EntryType
   {
-    public TimeStamp At { get; init; }
-    public decimal Price { get; init; }
-    public string Tag { get; init; }
+    Market,
+    Limit,
+    Stop,
   }
 }

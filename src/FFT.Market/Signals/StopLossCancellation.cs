@@ -3,14 +3,12 @@
 
 namespace FFT.Market.Signals
 {
-  using System;
   using FFT.TimeStamps;
 
-  public sealed class SignalEntryFilled : IEvent
+  public sealed class StopLossCancellation
   {
-    public Guid AggregateId { get; init; }
-    public long Version { get; init; }
+    public StopLoss StopLoss { get; init; }
     public TimeStamp At { get; init; }
-    public decimal FillPrice { get; init; }
+    public string Reason { get; init; }
   }
 }

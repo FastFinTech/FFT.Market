@@ -34,7 +34,7 @@ namespace FFT.Market.Tests
         At = TimeStamp.Now,
         ExpectedVersion = 1,
         Direction = Direction.Up,
-        EntryType = SignalEntryType.Limit,
+        EntryType = EntryType.Limit,
         Price = 100,
         Tag = "The best entry there ever was",
       });

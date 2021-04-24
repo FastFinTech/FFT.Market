@@ -6,10 +6,12 @@ namespace FFT.Market.Signals
   using System;
   using FFT.TimeStamps;
 
-  public sealed class SignalStopLossCanceled : IEvent
+  public sealed class StopLossSet : IEvent
   {
     public Guid AggregateId { get; init; }
     public long Version { get; init; }
     public TimeStamp At { get; init; }
+    public decimal Price { get; init; }
+    public string Tag { get; init; }
   }
 }

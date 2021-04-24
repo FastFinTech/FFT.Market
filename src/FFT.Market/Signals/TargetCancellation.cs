@@ -3,15 +3,12 @@
 
 namespace FFT.Market.Signals
 {
-  using System;
   using FFT.TimeStamps;
 
-  public sealed class SignalExitFilled : IEvent
+  public sealed class TargetCancellation
   {
-    public Guid AggregateId { get; init; }
-    public long Version { get; init; }
+    public Target Target { get; init; }
     public TimeStamp At { get; init; }
-    public decimal Price { get; init; }
     public string Reason { get; init; }
   }
 }

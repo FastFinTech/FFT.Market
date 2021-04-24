@@ -5,10 +5,10 @@ namespace FFT.Market.Signals
 {
   using FFT.TimeStamps;
 
-  public sealed record SignalStopLossData
+  public sealed class Fill
   {
     public TimeStamp At { get; init; }
     public decimal Price { get; init; }
-    public string Tag { get; init; }
+    public string Reason { get; init; }
   }
 }

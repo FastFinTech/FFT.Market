@@ -5,6 +5,7 @@ namespace FFT.Market.Signals
 {
   using System;
   using System.Collections.Generic;
+  using System.Collections.Immutable;
   using System.Linq;
   using System.Text;
   using System.Threading.Tasks;
@@ -12,10 +13,6 @@ namespace FFT.Market.Signals
 
   public sealed class Signal : AggregateBase<Signal>
   {
-    private readonly List<SignalEntryData> _canceledEntries = new();
-    private readonly List<SignalStopLossData> _canceledStopLosses = new();
-    private readonly List<SignalTargetData> _canceledTargets = new();
-
     public Signal(Guid id)
       : base(id)
     {
@@ -33,43 +30,49 @@ namespace FFT.Market.Signals
 
     public SignalCancellation? Cancellation { get; private set; }
 
-    public SignalEntryData? Entry { get; private set; }
+    public Entry? Entry { get; private set; }
 
-    public SignalFill? EntryFill { get; private set; }
+    public Fill? EntryFill { get; private set; }
 
-    public IEnumerable<SignalEntryData> CanceledEntries => _canceledEntries;
+    public ImmutableList<EntryCancellation> CanceledEntries { get; private set; } = ImmutableList<EntryCancellation>.Empty;
 
-    public SignalStopLossData? StopLoss { get; private set; }
+    public ImmutableList<StopLossCancellation> CanceledStopLosses { get; private set; } = ImmutableList<StopLossCancellation>.Empty;
 
-    public IEnumerable<SignalStopLossData> CanceledStopLosses => _canceledStopLosses;
+    public ImmutableList<TargetCancellation> CanceledTargets { get; private set; } = ImmutableList<TargetCancellation>.Empty;
 
-    public SignalTargetData? Target { get; private set; }
+    public StopLoss? StopLoss { get; private set; }
 
-    public IEnumerable<SignalTargetData> CanceledTargets => _canceledTargets;
+    public Target? Target { get; private set; }
 
-    public SignalFill? ExitFill { get; private set; }
+    public Fill? ExitFill { get; private set; }
+
+    public decimal? RealizedPnLInPoints
+      => (ExitFill?.Price - EntryFill?.Price) * Entry?.Direction!;
+      //=> EntryFill is not null && ExitFill is not null
+      //  ? (ExitFill.Price - EntryFill.Price) * Entry!.Direction
+      //  : null;
 
     private void Handle(CreateSignal command)
     {
       if (Version != 0)
         throw new InvalidOperationException("A signal can only be created once.");
 
-      if (string.IsNullOrEmpty(command.StrategyName))
+      if (string.IsNullOrWhiteSpace(command.StrategyName))
         throw new InvalidOperationException("Strategy name cannot be empty.");
 
-      if (string.IsNullOrEmpty(command.SignalName))
+      if (string.IsNullOrWhiteSpace(command.SignalName))
         throw new InvalidOperationException("Signal name cannot be empty.");
 
-      if (string.IsNullOrEmpty(command.Instrument))
+      if (string.IsNullOrWhiteSpace(command.Instrument))
         throw new InvalidOperationException("Instrument cannot be empty.");
 
-      if (string.IsNullOrEmpty(command.Exchange))
+      if (string.IsNullOrWhiteSpace(command.Exchange))
         throw new InvalidOperationException("Exchange cannot be empty.");
 
       Apply(new SignalCreated
       {
         AggregateId = Id,
-        At = TimeStamp.Now,
+        At = command.At,
         Version = Version + 1,
         StrategyName = command.StrategyName,
         SignalName = command.SignalName,
@@ -95,7 +98,7 @@ namespace FFT.Market.Signals
       Apply(new SignalCanceled
       {
         AggregateId = Id,
-        At = TimeStamp.Now,
+        At = command.At,
         Version = Version + 1,
         Reason = command.Reason,
       });
@@ -121,10 +124,13 @@ namespace FFT.Market.Signals
       if (string.IsNullOrWhiteSpace(command.Tag))
         throw new InvalidOperationException("Tag must be set.");
 
-      if (Entry is not null && Entry.Direction != command.Direction)
-        throw new InvalidOperationException("Cannot change the direction of a signal.");
+      if (Entry is not null)
+      {
+        if (Entry.Direction != command.Direction)
+          throw new InvalidOperationException("Cannot change the direction of a signal.");
+      }
 
-      Apply(new SignalEntrySet
+      Apply(new EntrySet
       {
         AggregateId = Id,
         At = TimeStamp.Now,
@@ -147,10 +153,13 @@ namespace FFT.Market.Signals
       if (EntryFill is not null)
         throw new InvalidOperationException("Cannot fill entry more than once.");
 
-      Apply(new SignalEntryFilled
+      if (command.Price <= 0)
+        throw new InvalidOperationException("Price must be greater than zero.");
+
+      Apply(new EntryFilled
       {
         AggregateId = Id,
-        At = TimeStamp.Now,
+        At = command.At,
         Version = Version + 1,
         FillPrice = command.Price,
       });
@@ -173,10 +182,10 @@ namespace FFT.Market.Signals
       if (string.IsNullOrWhiteSpace(command.Tag))
         throw new InvalidOperationException("Tag must be set.");
 
-      Apply(new SignalStopLossSet
+      Apply(new StopLossSet
       {
         AggregateId = Id,
-        At = TimeStamp.Now,
+        At = command.At,
         Version = Version + 1,
         Price = command.Price,
         Tag = command.Tag,
@@ -194,11 +203,15 @@ namespace FFT.Market.Signals
       if (ExitFill is not null)
         throw new InvalidOperationException("Cannot cancel a stop loss after the exit has filled.");
 
-      Apply(new SignalStopLossCanceled
+      if (string.IsNullOrWhiteSpace(command.Reason))
+        throw new InvalidOperationException("Reason must not be empty.");
+
+      Apply(new StopLossCanceled
       {
         AggregateId = Id,
-        At = TimeStamp.Now,
+        At = command.At,
         Version = Version + 1,
+        Reason = command.Reason,
       });
     }
 
@@ -219,10 +232,10 @@ namespace FFT.Market.Signals
       if (string.IsNullOrWhiteSpace(command.Tag))
         throw new InvalidOperationException("Tag must be set.");
 
-      Apply(new SignalTargetSet
+      Apply(new TargetSet
       {
         AggregateId = Id,
-        At = TimeStamp.Now,
+        At = command.At,
         Version = Version + 1,
         Price = command.Price,
         Tag = command.Tag,
@@ -240,11 +253,15 @@ namespace FFT.Market.Signals
       if (ExitFill is not null)
         throw new InvalidOperationException("Cannot cancel a target after the exit has filled.");
 
-      Apply(new SignalTargetCanceled
+      if (string.IsNullOrWhiteSpace(command.Reason))
+        throw new InvalidOperationException("Reason must not be empty.");
+
+      Apply(new TargetCanceled
       {
         AggregateId = Id,
-        At = TimeStamp.Now,
+        At = command.At,
         Version = Version + 1,
+        Reason = command.Reason,
       });
     }
 
@@ -259,10 +276,10 @@ namespace FFT.Market.Signals
       if (ExitFill is not null)
         throw new InvalidOperationException("Cannot fill the exit more than once.");
 
-      Apply(new SignalExitFilled
+      Apply(new ExitFilled
       {
         AggregateId = Id,
-        At = TimeStamp.Now,
+        At = command.At,
         Version = Version + 1,
         Price = command.Price,
         Reason = command.Reason,
@@ -282,14 +299,35 @@ namespace FFT.Market.Signals
     {
       if (Entry is not null)
       {
-        _canceledEntries.Add(Entry);
+        CanceledEntries = CanceledEntries.Add(new EntryCancellation
+        {
+          At = @event.At,
+          Reason = "Siganl was canceled.",
+          Entry = Entry,
+        });
         Entry = null;
       }
 
       if (StopLoss is not null)
       {
-        _canceledStopLosses.Add(StopLoss);
+        CanceledStopLosses = CanceledStopLosses.Add(new StopLossCancellation
+        {
+          At = @event.At,
+          StopLoss = StopLoss,
+          Reason = "Signal was canceled.",
+        });
         StopLoss = null;
+      }
+
+      if (Target is not null)
+      {
+        CanceledTargets = CanceledTargets.Add(new TargetCancellation
+        {
+          At = @event.At,
+          Reason = "Signal was canceled.",
+          Target = Target,
+        });
+        Target = null;
       }
 
       Cancellation = new SignalCancellation
@@ -299,12 +337,19 @@ namespace FFT.Market.Signals
       };
     }
 
-    private void On(SignalEntrySet @event)
+    private void On(EntrySet @event)
     {
       if (Entry is not null)
-        _canceledEntries.Add(Entry);
+      {
+        CanceledEntries = CanceledEntries.Add(new EntryCancellation
+        {
+          At = @event.At,
+          Reason = "Entry was replaced.",
+          Entry = Entry,
+        });
+      }
 
-      Entry = new SignalEntryData
+      Entry = new Entry
       {
         At = @event.At,
         EntryType = @event.EntryType,
@@ -314,21 +359,28 @@ namespace FFT.Market.Signals
       };
     }
 
-    private void On(SignalEntryFilled @event)
+    private void On(EntryFilled @event)
     {
-      EntryFill = new SignalFill
+      EntryFill = new Fill
       {
         At = @event.At,
         Price = @event.FillPrice,
       };
     }
 
-    private void On(SignalStopLossSet @event)
+    private void On(StopLossSet @event)
     {
       if (StopLoss is not null)
-        _canceledStopLosses.Add(StopLoss);
+      {
+        CanceledStopLosses = CanceledStopLosses.Add(new StopLossCancellation
+        {
+          At = @event.At,
+          Reason = "Stop loss was replaced by another.",
+          StopLoss = StopLoss,
+        });
+      }
 
-      StopLoss = new SignalStopLossData
+      StopLoss = new StopLoss
       {
         At = @event.At,
         Price = @event.Price,
@@ -336,18 +388,30 @@ namespace FFT.Market.Signals
       };
     }
 
-    private void On(SignalStopLossCanceled @event)
+    private void On(StopLossCanceled @event)
     {
-      _canceledStopLosses.Add(StopLoss!);
+      CanceledStopLosses = CanceledStopLosses.Add(new StopLossCancellation
+      {
+        At = @event.At,
+        StopLoss = StopLoss!,
+        Reason = @event.Reason,
+      });
       StopLoss = null;
     }
 
-    private void On(SignalTargetSet @event)
+    private void On(TargetSet @event)
     {
       if (Target is not null)
-        _canceledTargets.Add(Target);
+      {
+        CanceledTargets = CanceledTargets.Add(new TargetCancellation
+        {
+          At = @event.At,
+          Reason = "Target was replaced.",
+          Target = Target,
+        });
+      }
 
-      Target = new SignalTargetData
+      Target = new Target
       {
         At = @event.At,
         Price = @event.Price,
@@ -355,15 +419,20 @@ namespace FFT.Market.Signals
       };
     }
 
-    private void On(SignalTargetCanceled @event)
+    private void On(TargetCanceled @event)
     {
-      _canceledTargets.Add(Target!);
+      CanceledTargets.Add(new TargetCancellation
+      {
+        At = @event.At,
+        Reason = @event.Reason,
+        Target = Target!,
+      });
       Target = null;
     }
 
-    private void On(SignalExitFilled @event)
+    private void On(ExitFilled @event)
     {
-      ExitFill = new SignalFill
+      ExitFill = new Fill
       {
         At = @event.At,
         Price = @event.Price,

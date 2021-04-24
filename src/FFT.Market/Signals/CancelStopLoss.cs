@@ -11,5 +11,6 @@ namespace FFT.Market.Signals
     public Guid AggregateId { get; init; }
     public long ExpectedVersion { get; init; }
     public TimeStamp At { get; init; }
+    public string Reason { get; init; }
   }
 }
