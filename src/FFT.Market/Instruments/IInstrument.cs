@@ -3,6 +3,7 @@
 
 namespace FFT.Market.Instruments
 {
+  using System.Runtime.CompilerServices;
   using FFT.TimeStamps;
 
   public interface IInstrument
@@ -21,6 +22,8 @@ namespace FFT.Market.Instruments
 
     double MinQtyIncrement { get; }
 
+    bool IsTradingDay(DateStamp date);
+
     DateStamp ThisOrNextTradingDay(DateStamp date)
     {
       while (!IsTradingDay(date))
@@ -35,14 +38,19 @@ namespace FFT.Market.Instruments
       return date;
     }
 
-    bool IsTradingDay(DateStamp date);
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     double IncrementsToPoints(int numIncrements)
       => (double)(numIncrements * (decimal)MinPriceIncrement);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    int PointsToIncrements(double points)
+      => points.ToIncrements(MinPriceIncrement);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     double RoundPrice(double value)
       => value.RoundToIncrement(MinPriceIncrement);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     double AddIncrements(double value, int numIncrements)
       => value.AddIncrements(MinPriceIncrement, numIncrements);
   }
