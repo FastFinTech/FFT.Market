@@ -263,7 +263,7 @@ namespace FFT.Market.Engines.WavePattern
           {
             if (_bars.GetLow(A.Index + 1) > aLow)
             {
-              P = new IndexAndValue(A.Index, aLow);
+              P = new IndexAndValue(A.Index, aHigh);
               State = WaveStates.FormedP;
               _flags.SetFlags(WavePatternFlags.FormedP);
 
