@@ -20,26 +20,25 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
-  <!-- Icon settings -->
-  <PropertyGroup>
-    <!-- Package icon setting is relative to its location within the nuget package -->
-    <PackageIcon>Icon.jpg</PackageIcon>
-    <!-- Application icon setting needs absolute path or it will assume the value here is relative to the project file -->
-    <ApplicationIcon>$(SourceRoot)Icon.ico</ApplicationIcon>
-  </PropertyGroup>
-
+  <!-- Package icon settings -->
   <ItemGroup>
     <!-- Place the package icon in the root of the nuget package -->
     <None Include="$(SourceRoot)Icon.jpg" Pack="true" Visible="false" PackagePath="/" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <!-- Package icon setting is relative to its location within the nuget package -->
+    <PackageIcon>Icon.jpg</PackageIcon>
+  </PropertyGroup>
+  <!-- End package icon settings -->
+
   <ItemGroup>
-    <!--<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />-->
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.164" PrivateAssets="all" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
