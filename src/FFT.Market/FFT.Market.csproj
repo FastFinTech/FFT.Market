@@ -2,8 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net5</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>true</IsPackable>
     <NoWarn>CS8618;SA1600;SA1101;SA1516;SA1602;SA1623;SA1309;SA1503;SA1615;SA1611;SA1310;SA1501;SA1000;SA1618</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <PackageId>FFT.Market</PackageId>
     <Summary>Trading software utilities.</Summary>
@@ -16,19 +18,6 @@
     <PackageTags>trading</PackageTags>
 
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Instruments\Old\**" />
-    <Compile Remove="obj\Debug\Generated\**" />
-    <EmbeddedResource Remove="Instruments\Old\**" />
-    <EmbeddedResource Remove="obj\Debug\Generated\**" />
-    <None Remove="Instruments\Old\**" />
-    <None Remove="obj\Debug\Generated\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ConfigureAwait.Fody" Version="3.3.1" />
@@ -48,6 +37,17 @@
     <PackageReference Include="Nito.AsyncEx" Version="5.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Instruments\Old\**" />
+    <Compile Remove="obj\Debug\Generated\**" />
+    <EmbeddedResource Remove="Instruments\Old\**" />
+    <EmbeddedResource Remove="obj\Debug\Generated\**" />
+    <None Remove="Instruments\Old\**" />
+    <None Remove="obj\Debug\Generated\**" />
+  </ItemGroup>
+
+  <!-- Source generator usage -->
+
   <PropertyGroup>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
@@ -58,5 +58,7 @@
     <CompilerVisibleProperty Include="DebugSourceGenerators" />
     <ProjectReference Include="..\FFT.Market.SourceGen\FFT.Market.SourceGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
+
+  <!-- End source generator usage -->
 
 </Project>
