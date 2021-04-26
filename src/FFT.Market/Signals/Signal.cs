@@ -4,11 +4,7 @@
 namespace FFT.Market.Signals
 {
   using System;
-  using System.Collections.Generic;
   using System.Collections.Immutable;
-  using System.Linq;
-  using System.Text;
-  using System.Threading.Tasks;
   using FFT.TimeStamps;
 
   public sealed class Signal : AggregateBase<Signal>
@@ -127,7 +123,7 @@ namespace FFT.Market.Signals
       Apply(new EntrySet
       {
         AggregateId = Id,
-        At = TimeStamp.Now,
+        At = command.At,
         Version = Version + 1,
         Direction = command.Direction,
         EntryType = command.EntryType,
