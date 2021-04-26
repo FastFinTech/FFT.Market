@@ -4,6 +4,8 @@
 namespace FFT.Market
 {
   using System;
+  using System.Text.Json;
+  using System.Text.Json.Serialization;
   using static System.Math;
 
   /// <summary>
@@ -25,6 +27,7 @@ namespace FFT.Market
   ///    in performance-critical code paths, when it is documented and you understand that you are EXPECTED to initialize your
   ///    Direction variables as Direction.Unknown.
   /// </summary>
+  [JsonConverter(typeof(Converter))]
   public sealed class Direction : IEquatable<Direction>, IComparable<Direction>
   {
     public static readonly Direction Unknown = new Direction(0, "Unknown");
@@ -124,5 +127,31 @@ namespace FFT.Market
 #pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
     public int CompareTo(Direction other) => _direction.CompareTo(other._direction);
 #pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
+
+    private class Converter : JsonConverter<Direction>
+    {
+      public override Direction? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+      {
+        if (reader.TokenType == JsonTokenType.Null)
+          return null;
+
+        if (reader.TokenType == JsonTokenType.String)
+        {
+          var stringValue = reader.GetString();
+          return stringValue switch
+          {
+            "Up" => Direction.Up,
+            "Down" => Direction.Down,
+            "Unknown" => Direction.Unknown,
+            _ => throw new JsonException($"Unable to parse a '{nameof(Direction)}' from value '{stringValue}'."),
+          };
+        }
+
+        throw new JsonException($"Token type not known when parsing '{nameof(Direction)}' type.");
+      }
+
+      public override void Write(Utf8JsonWriter writer, Direction value, JsonSerializerOptions options)
+        => writer.WriteStringValue(value?.ToString());
+    }
   }
 }
