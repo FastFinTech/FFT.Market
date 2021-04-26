@@ -36,6 +36,8 @@ namespace FFT.Market.Signals
 
     public ImmutableList<TargetCancellation> CanceledTargets { get; private set; } = ImmutableList<TargetCancellation>.Empty;
 
+    public ImmutableList<DiaryEntry> DiaryEntries { get; private set; } = ImmutableList<DiaryEntry>.Empty;
+
     public StopLoss? StopLoss { get; private set; }
 
     public Target? Target { get; private set; }
@@ -276,6 +278,20 @@ namespace FFT.Market.Signals
       });
     }
 
+    private void Handle(AddDiaryEntry command)
+    {
+      if (Version == 0)
+        throw new InvalidOperationException("Command cannot be executed on a signal that has not been created.");
+
+      Apply(new DiaryEntryAdded
+      {
+        AggregateId = Id,
+        At = command.At,
+        Version = Version + 1,
+        Message = command.Message,
+      });
+    }
+
     private void On(SignalCreated @event)
     {
       CreatedAt = @event.At;
@@ -428,6 +444,15 @@ namespace FFT.Market.Signals
         Price = @event.Price,
         Reason = @event.Reason,
       };
+    }
+
+    private void On(DiaryEntryAdded @event)
+    {
+      DiaryEntries = DiaryEntries.Add(new DiaryEntry
+      {
+        At = @event.At,
+        Message = @event.Message,
+      });
     }
   }
 }
