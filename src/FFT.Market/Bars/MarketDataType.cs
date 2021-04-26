@@ -14,6 +14,6 @@ namespace FFT.Market.Bars {
         DailyVolume = 5,
         LastClose = 6,
         Opening = 7,
-        Unknown = 8
+        Unknown = 8,
     }
 }

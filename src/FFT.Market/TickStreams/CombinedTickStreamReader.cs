@@ -60,7 +60,7 @@ namespace FFT.Market.TickStreams
 
     /// <summary>
     /// Reads the next tick from the combined tick stream.
-    /// Returns null when no more ticks are available. After 
+    /// Returns null when no more ticks are available. After
     /// more ticks have been added to any of the input streams,
     /// the method will again begin to return not-null ticks.
     /// After a tick has been read once from this method, it is considered
@@ -74,7 +74,7 @@ namespace FFT.Market.TickStreams
     }
 
     /// <summary>
-    /// "Peeks" ahead to return the next tick available in the tick stream. 
+    /// "Peeks" ahead to return the next tick available in the tick stream.
     /// Returns null if no more ticks are available. After more ticks have been added
     /// to any of the input streams, the method will again being to return not-null ticks.
     /// Repeated calls to this method will continually return the same tick until that tick has
@@ -107,7 +107,7 @@ namespace FFT.Market.TickStreams
         }
 
         // Even the new enumerator doesn't have ticks, so we return null.
-        // Next time this method is called, the new (and dead enumerator) will again be 
+        // Next time this method is called, the new (and dead enumerator) will again be
         // asked to "MoveNext" even though it's finished with its enumeration. That doesn't hurt;
         // the code will just move down to the point where a new enumerator is again created.
         return null;

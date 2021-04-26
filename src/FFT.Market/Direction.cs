@@ -11,18 +11,18 @@ namespace FFT.Market
   /// This class is heavily used in performance-critical scenarios and it has been coded with efficiency in mind.
   /// Its most common usage is to compare two instances to determine if they are equal, or to see which is greater.
   /// It was found through testing that the most efficient way to implement this is to ensure that ONLY THREE instances
-  /// of this type are ever created (one for each direction including "Unknown"), and that we make use of the object equality 
+  /// of this type are ever created (one for each direction including "Unknown"), and that we make use of the object equality
   /// operator "==" whenever possible for these purposes as it is faster than accessing member variables.
   /// When modifying this class you must understand:
-  /// 1. To create more efficient code, much of the logic within consists of expression similar to "if (this == Up)" 
+  /// 1. To create more efficient code, much of the logic within consists of expression similar to "if (this == Up)"
   ///    instead of something like "if (this._direction == 1)". Tests show that the class is working faster this way.
   ///    To keep the system working when coded like this instead of accessing member variables, it's important that:
   ///    a) The class remain "sealed", and,
   ///    b) NO OTHER instances of this class be created and the constructor be kept private.
-  /// When using this class you must understand: 
+  /// When using this class you must understand:
   /// 1. It's not intended that instances of this type be null. In many cases you will experience <see cref="NullReferenceException"/>
   ///    when passing null into any of the method or operator parameters. This is on purpose, as null-checking is a waste of cpu
-  ///    in performance-critical code paths, when it is documented and you understand that you are EXPECTED to initialize your 
+  ///    in performance-critical code paths, when it is documented and you understand that you are EXPECTED to initialize your
   ///    Direction variables as Direction.Unknown.
   /// </summary>
   public sealed class Direction : IEquatable<Direction>, IComparable<Direction>
@@ -121,6 +121,8 @@ namespace FFT.Market
     /// </summary>
     /// <exception cref="NullReferenceException">Thrown when <paramref
     /// name="other"/> is <see langword="null""/>.</exception>
+#pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
     public int CompareTo(Direction other) => _direction.CompareTo(other._direction);
+#pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
   }
 }

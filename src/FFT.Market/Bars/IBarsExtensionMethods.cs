@@ -110,7 +110,7 @@ namespace FFT.Market.Bars
 
     /// <summary>
     /// Searches an IBars series to find the index of a bar exactly matching the given barPositionDescriptor, returning true if the exactly-matching bar was found.
-    /// If bars at the given timestamp and close do exist, but not enough to reach the barPositionDescriptor.SequenceNumber, 'barIndex' will contain the index of 
+    /// If bars at the given timestamp and close do exist, but not enough to reach the barPositionDescriptor.SequenceNumber, 'barIndex' will contain the index of
     /// the last bar with the right timestamp and close, even though 'false' is returned.
     /// </summary>
     /// <param name="barIndex">If the method returns true, barIndex is the index of the bar exactly matching the barPositionDescriptor.
@@ -157,7 +157,8 @@ namespace FFT.Market.Bars
 
     public static bool TryFindBarExactOrOneAfter(this IBars target, BarPositionDescriptor barPositionDescriptor, out int barIndex, out bool isExactMatch)
     {
-      int firstIndex, lastIndex; TimeStamp timeStampFound;
+      int firstIndex, lastIndex;
+      TimeStamp timeStampFound;
       if (!target.TryFindTimeStampAtOrAfter(barPositionDescriptor.TimeStamp, out timeStampFound, out isExactMatch, out firstIndex, out lastIndex))
       {
         barIndex = -1;

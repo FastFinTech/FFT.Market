@@ -4,7 +4,7 @@
     <TargetFramework>net5</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>true</IsPackable>
-    <NoWarn>CS8618;SA1600;SA1101;SA1516;SA1602;SA1623;SA1309;SA1503;SA1615;SA1611;SA1310;SA1501;SA1000;SA1618</NoWarn>
+    <NoWarn>CS8618;SA1600;SA1101;SA1516;SA1602;SA1623;SA1309;SA1503;SA1615;SA1611;SA1310;SA1501;SA1000;SA1618;CS1591;CS1570;SA1005</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <PackageId>FFT.Market</PackageId>
@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConfigureAwait.Fody" Version="3.3.1" />
+    <PackageReference Include="ConfigureAwait.Fody" Version="3.3.1" PrivateAssets="all" />
     <PackageReference Include="FFT.Disposables" Version="0.0.6" />
     <PackageReference Include="FFT.FileManagement" Version="0.0.3" />
     <PackageReference Include="FFT.SlottedTimers" Version="0.0.2" />

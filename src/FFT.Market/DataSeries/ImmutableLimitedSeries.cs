@@ -25,7 +25,7 @@ namespace FFT.Market.DataSeries
   /// The <see cref="ImmutableLimitedSeries{T}"/> is created with an initial <see cref="MaxLookBack"/> of only 256 items,
   /// to save RAM. Other engines and indicators can request increasing the capacity when necessary in the following manner:
   /// <code>
-  /// public MyEngine(ProcessingContext processingContext, MyEngineSettings settings) { 
+  /// public MyEngine(ProcessingContext processingContext, MyEngineSettings settings) {
   ///   // create a dependency engine (or retrieve it from the already-existing engines in the processing context)
   ///   var engineINeed = processingContext.GetSomeEngineINeed(someSettings);
   ///   // request that engine's data points to increase the maximum look back, because we need to access more history (rare circumstance)

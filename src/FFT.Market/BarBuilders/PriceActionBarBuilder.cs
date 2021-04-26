@@ -10,7 +10,7 @@ namespace FFT.Market.BarBuilders
   using FFT.Market.Ticks;
   using static System.Math;
 
-  public class PriceActionBarBuilder : BarBuilder
+  public sealed class PriceActionBarBuilder : BarBuilder
   {
     private readonly PriceActionPeriod _period;
     private readonly double _initialTrendBarSizeInPoints;

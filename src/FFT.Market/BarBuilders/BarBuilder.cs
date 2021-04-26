@@ -27,8 +27,8 @@ namespace FFT.Market.BarBuilders
     protected TradingSessionIterator SessionIterator { get; }
 
     /// <summary>
-    /// A utility method to create a bar builder from a BarsInfo object, so that you don't have to write 
-    /// this switch statement all over your own code.
+    /// A utility method to create a bar builder from a BarsInfo object, so that
+    /// you don't have to write this switch statement all over your own code.
     /// </summary>
     public static BarBuilder Create(BarsInfo barsInfo)
     {

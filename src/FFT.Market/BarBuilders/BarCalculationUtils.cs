@@ -79,7 +79,7 @@
 //                    var existingTrend = startIndex == 0 ? Direction.Up : bars.GetOpenCloseDirection(startIndex - 1);
 //                    var ticksToAdd = trendBarSizeInTicks + (barsAhead * (trendBarSizeInTicks + 1));
 //                    if (direction != existingTrend) {
-//                        // First bar will be a reversal bar. Following bars will be trend bars, so we just have to 
+//                        // First bar will be a reversal bar. Following bars will be trend bars, so we just have to
 //                        // swap out one trend bar for a reversal bar.
 //                        var reversalBarSizeInTicks = (bars.BarsInfo.Period as Diagnostic2Period).ReversalBarSizeInTicks;
 //                        ticksToAdd += (reversalBarSizeInTicks - trendBarSizeInTicks);
