@@ -46,12 +46,6 @@ namespace FFT.Market.Signals
 
     public Fill? ExitFill { get; private set; }
 
-    public decimal? RealizedPnLInPoints
-      => (ExitFill?.Price - EntryFill?.Price) * Entry?.Direction!;
-      //=> EntryFill is not null && ExitFill is not null
-      //  ? (ExitFill.Price - EntryFill.Price) * Entry!.Direction
-      //  : null;
-
     private void Handle(CreateSignal command)
     {
       if (Version != 0)
