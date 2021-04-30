@@ -12,65 +12,65 @@ namespace FFT.Market.BarBuilders
 
   public sealed class PriceActionBarBuilder : BarBuilder
   {
-    private readonly PriceActionPeriod _period;
     private readonly double _initialTrendBarSizeInPoints;
     private readonly double _initialReversalBarSizeInPoints;
-
-    private IBar _barInProgress;
-    private double _trendBarSizeInPoints;
-    private double _reversalBarSizeInPoints;
-    private double _currentBarMaxHigh;
-    private double _currentBarMinLow;
-    private double _nextOpenUp;
-    private double _nextOpenDown;
-    private double _nextBarMaxHigh;
-    private double _nextBarMinLow;
-    private Direction _trend = Direction.Up;
 
     public PriceActionBarBuilder(BarsInfo barsInfo)
       : base(barsInfo)
     {
-      _period = (barsInfo.Period as PriceActionPeriod) ?? throw new ArgumentException("period");
-      _initialTrendBarSizeInPoints = _trendBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(_period.TrendBarSizeInTicks);
-      _initialReversalBarSizeInPoints = _reversalBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(_period.ReversalBarSizeInTicks);
+      Period = (barsInfo.Period as PriceActionPeriod) ?? throw new ArgumentException("period");
+      _initialTrendBarSizeInPoints = TrendBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(Period.TrendBarSizeInTicks);
+      _initialReversalBarSizeInPoints = ReversalBarSizeInPoints = barsInfo.Instrument.IncrementsToPoints(Period.ReversalBarSizeInTicks);
     }
+
+    public PriceActionPeriod Period { get; }
+    public IBar BarInProgress { get; private set; }
+    public double TrendBarSizeInPoints { get; }
+    public double ReversalBarSizeInPoints { get; }
+    public double CurrentBarMaxHigh { get; private set; }
+    public double CurrentBarMinLow { get; private set; }
+    public double NextOpenUp { get; private set; }
+    public double NextOpenDown { get; private set; }
+    public double NextBarMaxHigh { get; private set; }
+    public double NextBarMinLow { get; private set; }
+    public Direction Trend { get; private set; } = Direction.Up;
 
     protected override void BarBuilderOnTick(Tick tick)
     {
-      if (_barInProgress is null || SessionIterator.IsFirstTickOfSession)
+      if (BarInProgress is null || SessionIterator.IsFirstTickOfSession)
       {
         // It's important to reset ALL calculation variables on a new session,
         // to prevent data sync issues when bars series are built from different
         // start dates.
-        _trend = Direction.Up;
+        Trend = Direction.Up;
         StartNewBar(tick, tick.Price);
       }
-      else if (tick.Price > _currentBarMaxHigh)
+      else if (tick.Price > CurrentBarMaxHigh)
       {
         CloseBarAtMaxHigh();
-        _trend = Direction.Up;
+        Trend = Direction.Up;
 
-        if (tick.Price > _nextBarMaxHigh)
+        if (tick.Price > NextBarMaxHigh)
         {
           StartNewBar(tick, tick.Price);
         }
         else
         {
-          StartNewBar(tick, _nextOpenUp);
+          StartNewBar(tick, NextOpenUp);
         }
       }
-      else if (tick.Price < _currentBarMinLow)
+      else if (tick.Price < CurrentBarMinLow)
       {
         CloseBarAtMinLow();
-        _trend = Direction.Down;
+        Trend = Direction.Down;
 
-        if (tick.Price < _nextBarMinLow)
+        if (tick.Price < NextBarMinLow)
         {
           StartNewBar(tick, tick.Price);
         }
         else
         {
-          StartNewBar(tick, _nextOpenDown);
+          StartNewBar(tick, NextOpenDown);
         }
       }
       else
@@ -81,71 +81,46 @@ namespace FFT.Market.BarBuilders
 
     private void StartNewBar(Tick tick, double openPrice)
     {
-      if (_period.AutoAdjustSize && Bars.Count >= 3)
+      if (Trend.IsUp)
       {
-        var increaseBarSize =
-          _trendBarSizeInPoints <= _initialTrendBarSizeInPoints &&
-          ((Bars[^1].IsUp && Bars[^2].IsDown && Bars[^3].IsUp) || (Bars[^1].IsDown && Bars[^2].IsUp && Bars[^3].IsDown));
-
-        if (increaseBarSize)
-        {
-          _trendBarSizeInPoints = BarsInfo.Instrument.RoundPrice(_trendBarSizeInPoints * 1.5);
-          _reversalBarSizeInPoints = BarsInfo.Instrument.RoundPrice(_reversalBarSizeInPoints * 1.5);
-        }
-        else
-        {
-          var decreaseBarSize =
-            _trendBarSizeInPoints >= _initialTrendBarSizeInPoints &&
-            Bars[^1].TimeStamp.Subtract(Bars[^2].TimeStamp).TotalMinutes > 1;
-
-          if (decreaseBarSize)
-          {
-            _trendBarSizeInPoints = BarsInfo.Instrument.RoundPrice(_trendBarSizeInPoints / 1.5);
-            _reversalBarSizeInPoints = BarsInfo.Instrument.RoundPrice(_reversalBarSizeInPoints / 1.5);
-          }
-        }
-      }
-
-      if (_trend.IsUp)
-      {
-        _currentBarMaxHigh = BarsInfo.Instrument.RoundPrice(openPrice + _trendBarSizeInPoints);
-        _currentBarMinLow = BarsInfo.Instrument.RoundPrice(openPrice - _reversalBarSizeInPoints);
+        CurrentBarMaxHigh = BarsInfo.Instrument.RoundPrice(openPrice + TrendBarSizeInPoints);
+        CurrentBarMinLow = BarsInfo.Instrument.RoundPrice(openPrice - ReversalBarSizeInPoints);
       }
       else
       {
-        _currentBarMaxHigh = BarsInfo.Instrument.RoundPrice(openPrice + _reversalBarSizeInPoints);
-        _currentBarMinLow = BarsInfo.Instrument.RoundPrice(openPrice - _trendBarSizeInPoints);
+        CurrentBarMaxHigh = BarsInfo.Instrument.RoundPrice(openPrice + ReversalBarSizeInPoints);
+        CurrentBarMinLow = BarsInfo.Instrument.RoundPrice(openPrice - TrendBarSizeInPoints);
       }
 
-      _nextOpenUp = BarsInfo.Instrument.AddIncrements(_currentBarMaxHigh, 1);
-      _nextOpenDown = BarsInfo.Instrument.AddIncrements(_currentBarMinLow, -1);
-      _nextBarMaxHigh = BarsInfo.Instrument.RoundPrice(_nextOpenUp + _trendBarSizeInPoints);
-      _nextBarMinLow = BarsInfo.Instrument.RoundPrice(_nextOpenDown - _trendBarSizeInPoints);
+      NextOpenUp = BarsInfo.Instrument.AddIncrements(CurrentBarMaxHigh, 1);
+      NextOpenDown = BarsInfo.Instrument.AddIncrements(CurrentBarMinLow, -1);
+      NextBarMaxHigh = BarsInfo.Instrument.RoundPrice(NextOpenUp + TrendBarSizeInPoints);
+      NextBarMinLow = BarsInfo.Instrument.RoundPrice(NextOpenDown - TrendBarSizeInPoints);
 
-      _barInProgress = new Bar();
-      _barInProgress.Open = openPrice;
-      _barInProgress.High = Max(openPrice, tick.Price);
-      _barInProgress.Low = Min(openPrice, tick.Price);
-      _barInProgress.Close = tick.Price;
-      _barInProgress.Volume = tick.Volume;
-      _barInProgress.TimeStamp = tick.TimeStamp;
-      Bars.AddNewBar(_barInProgress);
+      BarInProgress = new Bar();
+      BarInProgress.Open = openPrice;
+      BarInProgress.High = Max(openPrice, tick.Price);
+      BarInProgress.Low = Min(openPrice, tick.Price);
+      BarInProgress.Close = tick.Price;
+      BarInProgress.Volume = tick.Volume;
+      BarInProgress.TimeStamp = tick.TimeStamp;
+      Bars.AddNewBar(BarInProgress);
     }
 
     private void UpdateBar(Tick tick)
     {
-      _barInProgress.High = Max(_barInProgress.High, tick.Price);
-      _barInProgress.Low = Min(_barInProgress.Low, tick.Price);
-      _barInProgress.Close = tick.Price;
-      _barInProgress.Volume += tick.Volume;
-      _barInProgress.TimeStamp = tick.TimeStamp;
-      _barInProgress.TickCount++;
+      BarInProgress.High = Max(BarInProgress.High, tick.Price);
+      BarInProgress.Low = Min(BarInProgress.Low, tick.Price);
+      BarInProgress.Close = tick.Price;
+      BarInProgress.Volume += tick.Volume;
+      BarInProgress.TimeStamp = tick.TimeStamp;
+      BarInProgress.TickCount++;
     }
 
     private void CloseBarAtMaxHigh()
-      => _barInProgress.High = _barInProgress.Close = _currentBarMaxHigh;
+      => BarInProgress.High = BarInProgress.Close = CurrentBarMaxHigh;
 
     private void CloseBarAtMinLow()
-      => _barInProgress.Low = _barInProgress.Close = _currentBarMinLow;
+      => BarInProgress.Low = BarInProgress.Close = CurrentBarMinLow;
   }
 }

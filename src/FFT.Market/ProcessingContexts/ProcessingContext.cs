@@ -59,6 +59,9 @@ namespace FFT.Market.ProcessingContexts
     public Task ErrorTask => _errorTCS.Task;
 
     public IBars GetBars(BarsInfo barsInfo)
+      => GetBarBuilder(barsInfo).Bars;
+
+    public BarBuilder GetBarBuilder(BarsInfo barsInfo)
     {
       if (State != ProcessingContextState.Initializing)
         throw new InvalidOperationException("Must be in initializing state.");
@@ -68,12 +71,12 @@ namespace FFT.Market.ProcessingContexts
         foreach (var existingBarBuilder in _barBuilders)
         {
           if (existingBarBuilder.BarsInfo.Equals(barsInfo))
-            return existingBarBuilder.Bars;
+            return existingBarBuilder;
         }
 
         var barBuilder = BarBuilder.Create(barsInfo);
         _barBuilders.Add(barBuilder);
-        return barBuilder.Bars;
+        return barBuilder;
       }
     }
 

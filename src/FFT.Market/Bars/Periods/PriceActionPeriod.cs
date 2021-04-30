@@ -9,19 +9,15 @@ namespace FFT.Market.Bars.Periods
     {
       TrendBarSizeInTicks = 12,
       ReversalBarSizeInTicks = 12,
-      AutoAdjustSize = false,
     };
 
     public string Name => "PriceAction";
     public bool IsEvenTimeSpacingBars => false;
     public int TrendBarSizeInTicks { get; init; }
     public int ReversalBarSizeInTicks { get; init; }
-    public bool AutoAdjustSize { get; init; }
 
     public override string ToString()
-      => AutoAdjustSize
-        ? $"{TrendBarSizeInTicks}/{ReversalBarSizeInTicks}/(Auto)-PriceAction"
-        : $"{TrendBarSizeInTicks}/{ReversalBarSizeInTicks}/(Fixed)-PriceAction";
+      => $"{TrendBarSizeInTicks}/{ReversalBarSizeInTicks}-PriceAction";
 
     public IPeriod Multiply(double value)
       => this with
