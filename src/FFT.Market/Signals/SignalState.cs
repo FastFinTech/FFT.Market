@@ -4,10 +4,12 @@
 namespace FFT.Market.Signals
 {
   using System;
+  using System.Buffers;
   using System.Collections.Immutable;
+  using System.Text.Json;
   using FFT.TimeStamps;
 
-  public sealed record SignalState : IAggregateState
+  public sealed partial record SignalState : IAggregateState
   {
     public Guid Id { get; init; }
 
@@ -559,6 +561,45 @@ namespace FFT.Market.Signals
         }),
         Version = @event.Version,
       };
+    }
+
+    public IEventSerializer GetEventSerializer()
+      => EventSerializer.Instance;
+  }
+
+  public partial record SignalState
+  {
+    private class EventSerializer : IEventSerializer
+    {
+      public static readonly EventSerializer Instance = new();
+
+      private EventSerializer()
+      {
+      }
+
+      public void Serialize(IEvent @event, out string eventType, Utf8JsonWriter writer)
+      {
+        JsonSerializer.Serialize(writer, @event);
+        eventType = @event.GetType().Name;
+      }
+
+      public IEvent Deserialize(string eventType, ReadOnlySpan<byte> data)
+      {
+        return eventType switch
+        {
+          nameof(SignalCreated) => JsonSerializer.Deserialize<SignalCreated>(data)!,
+          nameof(SignalCanceled) => JsonSerializer.Deserialize<IEvent>(data)!,
+          nameof(EntrySet) => JsonSerializer.Deserialize<EntrySet>(data)!,
+          nameof(EntryFilled) => JsonSerializer.Deserialize<EntryFilled>(data)!,
+          nameof(StopLossSet) => JsonSerializer.Deserialize<StopLossSet>(data)!,
+          nameof(StopLossCanceled) => JsonSerializer.Deserialize<StopLossCanceled>(data)!,
+          nameof(TargetSet) => JsonSerializer.Deserialize<TargetSet>(data)!,
+          nameof(TargetCanceled) => JsonSerializer.Deserialize<TargetCanceled>(data)!,
+          nameof(ExitFilled) => JsonSerializer.Deserialize<ExitFilled>(data)!,
+          nameof(DiaryEntryAdded) => JsonSerializer.Deserialize<DiaryEntryAdded>(data)!,
+          _ => throw new Exception($"Unable to deserialize event type '{eventType}'."),
+        };
+      }
     }
   }
 }
